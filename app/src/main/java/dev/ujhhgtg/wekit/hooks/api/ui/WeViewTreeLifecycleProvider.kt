@@ -1,23 +1,19 @@
 package dev.ujhhgtg.wekit.hooks.api.ui
 
 import android.app.Activity
+import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.rootView
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 
 @HookItem(path = "API/ComposeView 生命周期提供方")
 object WeViewTreeLifecycleProvider : ApiHookItem() {
 
     override fun onEnable() {
-        WeMainActivityBeautifyApi.methodDoOnCreate.hookAfter(100) {
-            val activity = thisObject.asResolver()
-                .firstField {
-                    type = "com.tencent.mm.ui.MMFragmentActivity"
-                }
-                .get()!! as Activity
+        LauncherUI::class.hookAfterOnCreate {
+            val activity = thisObject as Activity
 
             val lifecycleOwner = LifecycleOwnerProvider.lifecycleOwner
 
