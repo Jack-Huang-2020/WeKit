@@ -18,7 +18,6 @@ import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeConversationApi
-import dev.ujhhgtg.wekit.hooks.api.core.WeCurrentActivityApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.hooks.api.ui.WeMainActivityBeautifyApi
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -26,6 +25,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.ContactsSelectionDialog
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
+import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
@@ -65,15 +65,16 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
         override fun onReceive(context: Context, intent: Intent?) {
             if (intent?.action != Intent.ACTION_SCREEN_OFF) return
 
-            val activity = WeCurrentActivityApi.activity ?: return
-            if (activity !is ChattingUI) return
+            if (chattingUi == null) return
 
-            val wxId = activity.intent.getStringExtra("Chat_User")
+            val wxId = chattingUi!!.intent.getStringExtra("Chat_User")
             if (wxId !in hiddenContacts) return
 
-            exitToMainActivity(activity)
+            exitToMainActivity()
         }
     }
+
+    private var chattingUi: ChattingUI? = null
 
     private object ShakeDetector : SensorEventListener {
 
@@ -117,7 +118,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
                 if (lastShakeTime + 1000 > now) return // 1-second debounce
                 lastShakeTime = now
 
-                exitToMainActivity(WeCurrentActivityApi.activity ?: return)
+                exitToMainActivity()
             }
         }
 
@@ -126,11 +127,12 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
         }
     }
 
-    private fun exitToMainActivity(activity: Activity) {
+    private fun exitToMainActivity() {
         WeLogger.d(TAG, "leaving conversation page")
-        val intent = Intent(activity, LauncherUI::class.java)
+        val ctx = HostInfo.application
+        val intent = Intent(ctx, LauncherUI::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        activity.startActivity(intent)
+        ctx.startActivity(intent)
     }
 
     private lateinit var contactInfoField: Field
@@ -155,7 +157,10 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
 
         ChattingUI::class.resolve().apply {
             firstMethod { name = "onResume" }.hookAfter {
-                val activity = thisObject as Activity
+                val activity = thisObject as ChattingUI
+
+                chattingUi = activity
+
                 val wxId = activity.intent.getStringExtra("Chat_User")
                 if (wxId !in hiddenContacts) return@hookAfter
 
@@ -163,6 +168,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
             }
 
             firstMethod { name = "onPause" }.hookAfter {
+                chattingUi = null
                 ShakeDetector.stop()
             }
         }
@@ -266,7 +272,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
                 initialSelectedWxIds = hiddenContacts,
                 onDismiss = onDismiss
             ) {
-                showToast("已保存 ${it.size} 个联系人, 隐藏状态可能需要重启微信生效")
+                showToast("已保存 ${it.size} 个联系人, 重启微信以使更改生效")
                 hiddenContacts = it
                 onDismiss()
             }

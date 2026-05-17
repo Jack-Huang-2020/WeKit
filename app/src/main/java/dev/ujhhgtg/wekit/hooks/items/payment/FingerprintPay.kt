@@ -31,6 +31,7 @@ import com.highcapable.kavaref.extension.toClass
 import com.tencent.mm.plugin.fingerprint.ui.FingerPrintAuthTransparentUI
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.activity.StubFragmentActivity
+import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.preferences.WePrefs
@@ -75,8 +76,8 @@ object FingerprintPay : ClickableHookItem() {
         }
 
         listOf(
-            "com.tencent.mm.framework.app.UIPageFragmentActivity",
-            "com.tencent.mm.plugin.lite.ui.WxaLiteAppTransparentLiteUI"
+            "${PackageNames.WECHAT}.framework.app.UIPageFragmentActivity",
+            "${PackageNames.WECHAT}.plugin.lite.ui.WxaLiteAppTransparentLiteUI"
         ).forEach { className ->
             className.toClass().resolve()
                 .apply {
