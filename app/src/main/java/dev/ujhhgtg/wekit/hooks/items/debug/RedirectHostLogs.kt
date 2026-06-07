@@ -24,7 +24,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
-@HookItem(path = "调试/重定向微信日志", description = "将微信内部日志打印至模块日志")
+@HookItem(name = "重定向微信日志", categories = ["调试"], description = "将微信内部日志打印至模块日志")
 object RedirectHostLogs : ClickableHookItem() {
 
     private val TAG = nameOf(RedirectHostLogs)

@@ -66,7 +66,7 @@ import org.luckypray.dexkit.DexKitBridge
 import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("StaticFieldLeak")
-@HookItem(path = "聊天/聊天工具栏", description = "在输入框上方添加工具栏")
+@HookItem(name = "聊天工具栏", categories = ["聊天"], description = "在输入框上方添加工具栏")
 object ChatToolbar : SwitchHookItem(), IResolvesDex {
 
     private val TAG = This.Class.simpleName

@@ -19,7 +19,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
 
-@HookItem(path = "聊天/显示消息详情", description = "向消息长按菜单添加菜单项, 可查看消息详情")
+@HookItem(name = "显示消息详情", categories = ["聊天"], description = "向消息长按菜单添加菜单项, 可查看消息详情")
 object DisplayMessageDetails : SwitchHookItem(),
     WeChatMessageContextMenuApi.IMenuItemsProvider {
 

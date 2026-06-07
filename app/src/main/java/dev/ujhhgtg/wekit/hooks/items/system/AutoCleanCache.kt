@@ -22,7 +22,7 @@ import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
-@HookItem(path = "系统与隐私/清理缓存垃圾", description = "自动或手动清理微信的缓存")
+@HookItem(name = "清理缓存垃圾", categories = ["系统与隐私"], description = "自动或手动清理微信的缓存")
 object AutoCleanCache : ClickableHookItem() {
 
     private val TAG = nameOf(AutoCleanCache)

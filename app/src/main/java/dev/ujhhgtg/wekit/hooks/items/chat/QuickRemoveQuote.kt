@@ -10,7 +10,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 
-@HookItem(path = "聊天/快捷清除引用", description = "在输入退格时若输入框无文字自动清除引用")
+@HookItem(name = "快捷清除引用", categories = ["聊天"], description = "在输入退格时若输入框无文字自动清除引用")
 object QuickRemoveQuote : SwitchHookItem(), IResolvesDex {
 
     private val methodSupportAutoCompleteOnKey by dexMethod()

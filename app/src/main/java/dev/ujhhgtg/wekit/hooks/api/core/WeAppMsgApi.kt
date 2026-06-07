@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
-@HookItem(path = "API/AppMsg 发送服务", description = "提供 XML 卡片消息发送能力")
+@HookItem(name = "AppMsg 发送服务", categories = ["API"], description = "提供 XML 卡片消息发送能力")
 object WeAppMsgApi : ApiHookItem(), IResolvesDex {
 
     private val methodParseXml by dexMethod()    // op0.q.u(String)

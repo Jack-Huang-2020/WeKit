@@ -10,7 +10,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
-@HookItem(path = "系统与隐私/隐藏模块应用", description = "在不影响模块功能的情况下防止微信查询模块安装状态 (实验性)")
+@HookItem(name = "隐藏模块应用", categories = ["系统与隐私"], description = "在不影响模块功能的情况下防止微信查询模块安装状态 (实验性)")
 object HideModuleFromAppList : SwitchHookItem() {
 
     private val TAG = This.Class.simpleName

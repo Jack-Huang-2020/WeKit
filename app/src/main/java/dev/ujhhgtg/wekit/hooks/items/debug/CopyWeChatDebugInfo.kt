@@ -16,7 +16,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "调试/复制调试信息", description = "在报告模块问题时, 请附上本功能的结果")
+@HookItem(name = "复制调试信息", categories = ["调试"], description = "在报告模块问题时, 请附上本功能的结果")
 object CopyWeChatDebugInfo : ClickableHookItem(), IResolvesDex {
 
     override val noSwitchWidget = true

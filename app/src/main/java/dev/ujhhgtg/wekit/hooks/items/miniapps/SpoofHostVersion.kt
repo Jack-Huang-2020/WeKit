@@ -1,24 +1,24 @@
 package dev.ujhhgtg.wekit.hooks.items.miniapps
 
 import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
-import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
+import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "小程序/伪装宿主版本", description = "解决提示版本较低无法使用部分小程序")
+@HookItem(name = "伪装宿主版本", categories = ["小程序"], description = "解决提示版本较低无法使用部分小程序")
 object SpoofHostVersion : SwitchHookItem(), IResolvesDex {
 
     override fun onEnable() {
-        methodCgiLaunchWxaAppFunc1122.hookBefore {
+        ctorCgiLaunchWxaAppFunc1122.hookBefore {
             args[6] = 9999
         }
     }
 
-    private val methodCgiLaunchWxaAppFunc1122 by dexMethod()
+    private val ctorCgiLaunchWxaAppFunc1122 by dexConstructor()
 
     override fun resolveDex(dexKit: DexKitBridge) {
-        methodCgiLaunchWxaAppFunc1122.find(dexKit) {
+        ctorCgiLaunchWxaAppFunc1122.find(dexKit) {
             matcher {
                 usingEqStrings(
                     "MicroMsg.AppBrand.CgiLaunchWxaApp|func:1122",

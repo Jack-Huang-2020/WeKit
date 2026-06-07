@@ -20,10 +20,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.LinkedList
 
-@HookItem(
-    path = "朋友圈/朋友圈伪集赞",
-    description = "自定义朋友圈点赞用户列表"
-)
+@HookItem(name = "朋友圈伪集赞", categories = ["朋友圈"], description = "自定义朋友圈点赞用户列表")
 object FakeMomentsLikes : SwitchHookItem(), WeMomentsContextMenuApi.IMenuItemsProvider,
     WeDatabaseListenerApi.IUpdateListener {
 

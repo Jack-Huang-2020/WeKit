@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.HostInfo
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "系统与隐私/禁止微信检测 Xposed", description = "防止微信检测 Xposed 框架是否存在")
+@HookItem(name = "禁止微信检测 Xposed", categories = ["系统与隐私"], description = "防止微信检测 Xposed 框架是否存在")
 object DisableXposedDetection : SwitchHookItem(), IResolvesDex {
 
     private val methodCheckStackTraceElements by dexMethod()
@@ -38,7 +38,7 @@ object DisableXposedDetection : SwitchHookItem(), IResolvesDex {
 
     override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
         if (newState && HostInfo.isHostGooglePlay) {
-            showComposeDialog(HostInfo.application) {
+            showComposeDialog(context) {
                 AlertDialogContent(
                     title = { Text("禁止微信检测 Xposed") },
                     text = {

@@ -61,7 +61,7 @@ import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import kotlinx.serialization.Serializable
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "系统与隐私/二维码扫描记录", description = "记录扫描的二维码 URL")
+@HookItem(name = "二维码扫描记录", categories = ["系统与隐私"], description = "记录扫描的二维码 URL")
 object QrCodeRecord : ClickableHookItem(), IResolvesDex {
 
     private val TAG = This.Class.simpleName

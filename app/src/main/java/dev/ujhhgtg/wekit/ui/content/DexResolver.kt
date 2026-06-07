@@ -51,14 +51,14 @@ import java.io.StringWriter
 import kotlin.system.exitProcess
 
 private sealed class ScanProgress {
-    data class Start(val path: String) : ScanProgress()
-    data class Complete(val path: String) : ScanProgress()
-    data class Failed(val path: String, val error: Exception) : ScanProgress()
+    data class Start(val displayName: String) : ScanProgress()
+    data class Complete(val displayName: String) : ScanProgress()
+    data class Failed(val displayName: String, val error: Exception) : ScanProgress()
 }
 
 private sealed class ScanResult {
-    data class Success(val path: String) : ScanResult()
-    data class Failed(val path: String, val error: Exception) : ScanResult()
+    data class Success(val displayName: String) : ScanResult()
+    data class Failed(val displayName: String, val error: Exception) : ScanResult()
 }
 
 private sealed class DialogPhase {
@@ -85,15 +85,15 @@ fun DexResolver(
     fun updateProgress(progress: ScanProgress) {
         when (progress) {
             is ScanProgress.Complete -> {
-                scanResults[progress.path] = ScanResult.Success(progress.path)
+                scanResults[progress.displayName] = ScanResult.Success(progress.displayName)
                 completed = scanResults.size
-                currentTask = "已完成: ${progress.path}"
+                currentTask = "已完成: ${progress.displayName}"
             }
 
             is ScanProgress.Failed -> {
-                scanResults[progress.path] = ScanResult.Failed(progress.path, progress.error)
+                scanResults[progress.displayName] = ScanResult.Failed(progress.displayName, progress.error)
                 completed = scanResults.size
-                currentTask = "失败: ${progress.path}"
+                currentTask = "失败: ${progress.displayName}"
             }
 
             else -> {}
@@ -105,17 +105,17 @@ fun DexResolver(
         dexKit: DexKitBridge,
         progressChannel: Channel<ScanProgress>
     ): ScanResult {
-        val path = if (item is BaseHookItem) item.path else unreachable()
+        val displayName = if (item is BaseHookItem) item.displayName else unreachable()
         return try {
-            progressChannel.send(ScanProgress.Start(path))
+            progressChannel.send(ScanProgress.Start(displayName))
             item.resolveDex(dexKit)
             DexCacheManager.saveItemCache(item)
-            progressChannel.send(ScanProgress.Complete(path))
-            ScanResult.Success(path)
+            progressChannel.send(ScanProgress.Complete(displayName))
+            ScanResult.Success(displayName)
         } catch (e: Exception) {
-            WeLogger.e(TAG, "failed to scan: $path", e)
-            progressChannel.send(ScanProgress.Failed(path, e))
-            ScanResult.Failed(path, e)
+            WeLogger.e(TAG, "failed to scan: $displayName", e)
+            progressChannel.send(ScanProgress.Failed(displayName, e))
+            ScanResult.Failed(displayName, e)
         }
     }
 
@@ -286,7 +286,7 @@ private fun ErrorDetailsSection(
         ) {
             val errorText = buildString {
                 failedResults.forEachIndexed { i, r ->
-                    append("${i + 1}. ${r.path}\n")
+                    append("${i + 1}. ${r.displayName}\n")
                     append("   错误: ${r.error.message}\n\n")
                 }
             }
@@ -307,7 +307,7 @@ private fun ErrorDetailsSection(
 private fun buildErrorReport(failedResults: List<ScanResult.Failed>) = buildString {
     append("=== WeKit Dex 扫描错误报告 ===\n\n")
     failedResults.forEachIndexed { i, r ->
-        append("${i + 1}. ${r.path}\n")
+        append("${i + 1}. ${r.displayName}\n")
         append("   错误信息: ${r.error.message}\n")
         append("   堆栈跟踪:\n")
         val sw = StringWriter()

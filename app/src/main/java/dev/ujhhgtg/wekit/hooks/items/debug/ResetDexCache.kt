@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-@HookItem(path = "调试/重置适配信息", description = "清除全部 DEX 适配信息, 等待下次启动时重新适配")
+@HookItem(name = "重置适配信息", categories = ["调试"], description = "清除全部 DEX 适配信息, 等待下次启动时重新适配")
 object ResetDexCache : ClickableHookItem() {
 
     override fun onClick(context: Context) {

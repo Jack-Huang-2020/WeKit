@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.utils.enumValueOfClass
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/引用消息直达", description = "点击被引用消息时直接跳转至对应消息")
+@HookItem(name = "引用消息直达", categories = ["聊天"], description = "点击被引用消息时直接跳转至对应消息")
 object QuotedMessageDirectJump : SwitchHookItem(), IResolvesDex {
 
     private val methodClickEvent by dexMethod()

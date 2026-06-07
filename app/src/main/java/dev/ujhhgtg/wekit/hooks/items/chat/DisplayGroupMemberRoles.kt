@@ -21,10 +21,7 @@ import dev.ujhhgtg.wekit.utils.unreachable
 import org.luckypray.dexkit.DexKitBridge
 import kotlin.math.roundToInt
 
-@HookItem(
-    path = "聊天/显示群成员身份",
-    description = "在群聊中显示群成员的身份: 群主, 管理员, 成员"
-)
+@HookItem(name = "显示群成员身份", categories = ["聊天"], description = "在群聊中显示群成员的身份: 群主, 管理员, 成员")
 object DisplayGroupMemberRoles : SwitchHookItem(), IResolvesDex,
     WeChatMessageViewApi.ICreateViewListener {
 

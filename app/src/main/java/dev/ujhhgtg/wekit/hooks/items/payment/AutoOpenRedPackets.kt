@@ -44,7 +44,7 @@ import kotlin.concurrent.thread
 import kotlin.random.Random
 
 @SuppressLint("DiscouragedApi")
-@HookItem(path = "红包与支付/自动抢红包", description = "监听消息并自动拆开红包")
+@HookItem(name = "自动抢红包", categories = ["红包与支付"], description = "监听消息并自动拆开红包")
 object AutoOpenRedPackets : ClickableHookItem(), WeDatabaseListenerApi.IInsertListener,
     IResolvesDex {
 

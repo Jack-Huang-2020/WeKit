@@ -154,7 +154,9 @@ object ActivityProxy {
         const val ACTIVITY_PROXY_INTENT_TOKEN = "wekit_target_intent_token"
         private const val CANDIDATE1 = "${PackageNames.WECHAT}.plugin.appbrand.ipc.AppBrandProxyTransparentUI"
         private const val CANDIDATE2 = "${PackageNames.WECHAT}.plugin.facedetect.ui.FaceTransparentStubUI"
-        val STUB_DEFAULT_ACTIVITY = if (ClassLoaders.HOST.hasClass(CANDIDATE1)) { CANDIDATE1 } else { CANDIDATE2 }
+        val STUB_DEFAULT_ACTIVITY by lazy {
+            if (ClassLoaders.HOST.hasClass(CANDIDATE1)) { CANDIDATE1 } else { CANDIDATE2 }
+        }
 
         fun isModuleProxyActivity(className: String?): Boolean =
             className?.startsWith(PackageNames.THIS) == true

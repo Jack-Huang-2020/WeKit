@@ -24,7 +24,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.util.concurrent.CopyOnWriteArrayList
 
-@HookItem(path = "API/首页菜单服务", description = "提供向首页右上角菜单添加菜单项的能力")
+@HookItem(name = "首页菜单服务", categories = ["API"], description = "提供向首页右上角菜单添加菜单项的能力")
 object WeHomeScreenPopupMenuApi : ApiHookItem(), IResolvesDex {
 
     interface IMenuItemsProvider {

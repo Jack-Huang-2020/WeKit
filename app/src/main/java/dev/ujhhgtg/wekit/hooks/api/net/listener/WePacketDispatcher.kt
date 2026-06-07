@@ -20,7 +20,7 @@ import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentHashMap
 
-@HookItem(path = "API/数据包拦截与篡改服务", description = "响应数据包拦截与篡改")
+@HookItem(name = "数据包拦截与篡改服务", categories = ["API"], description = "响应数据包拦截与篡改")
 object WePacketDispatcher : ApiHookItem(), IResolvesDex {
 
     private val TAG = nameOf(WePacketDispatcher)

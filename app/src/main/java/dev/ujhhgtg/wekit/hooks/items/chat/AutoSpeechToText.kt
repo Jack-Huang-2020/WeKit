@@ -12,7 +12,7 @@ import dev.ujhhgtg.wekit.utils.collections.LruCache
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import java.lang.reflect.InvocationTargetException
 
-@HookItem(path = "聊天/自动语音转文字", description = "自动将语音消息转为文字")
+@HookItem(name = "自动语音转文字", categories = ["聊天"], description = "自动将语音消息转为文字")
 object AutoSpeechToText : SwitchHookItem(),
     WeChatMessageViewApi.ICreateViewListener {
 

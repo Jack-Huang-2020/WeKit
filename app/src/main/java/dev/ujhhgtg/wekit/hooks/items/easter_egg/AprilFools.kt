@@ -24,7 +24,7 @@ import java.time.Month
 import java.util.WeakHashMap
 
 
-@HookItem(path = "愚人节彩蛋", description = "不显示于模块界面, 愚人节自动启用")
+@HookItem(name = "愚人节彩蛋", categories = ["彩蛋"], description = "不显示于模块界面, 愚人节自动启用")
 object AprilFools : BaseHookItem() {
 
     const val KEY_SURRENDER = "april_fools_surrender"

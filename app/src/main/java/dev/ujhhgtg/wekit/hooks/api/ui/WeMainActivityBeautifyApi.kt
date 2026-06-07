@@ -6,7 +6,7 @@ import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "API/微信主屏幕美化服务", description = "提供美化微信主屏幕的能力")
+@HookItem(name = "微信主屏幕美化服务", categories = ["API"], description = "提供美化微信主屏幕的能力")
 object WeMainActivityBeautifyApi : ApiHookItem(), IResolvesDex {
 
     val methodDoOnCreate by dexMethod()

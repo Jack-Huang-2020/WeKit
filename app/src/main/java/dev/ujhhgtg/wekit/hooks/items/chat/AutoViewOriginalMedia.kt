@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/自动查看原图", description = "在打开图片和视频时自动点击查看原图")
+@HookItem(name = "自动查看原图", categories = ["聊天"], description = "在打开图片和视频时自动点击查看原图")
 object AutoViewOriginalMedia : SwitchHookItem(), IResolvesDex {
 
     private val methodSetImageHdImgBtnVisibility by dexMethod()

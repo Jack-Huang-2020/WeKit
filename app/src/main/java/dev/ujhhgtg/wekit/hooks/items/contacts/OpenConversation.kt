@@ -15,7 +15,7 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 
-@HookItem(path = "联系人与群组/跳转对话", description = "打开指定微信 ID 的对话/好友主页/好友设置界面")
+@HookItem(name = "跳转对话", categories = ["联系人与群组"], description = "打开指定微信 ID 的对话/好友主页/好友设置界面")
 object OpenConversation : ClickableHookItem() {
 
     override val noSwitchWidget = true

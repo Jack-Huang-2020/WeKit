@@ -46,7 +46,7 @@ import kotlin.random.Random
 
 
 @SuppressLint("DiscouragedApi")
-@HookItem(path = "API/消息发送服务", description = "提供文本、图片、文件、语音消息发送能力")
+@HookItem(name = "消息发送服务", categories = ["API"], description = "提供文本、图片、文件、语音消息发送能力")
 object WeMessageApi : ApiHookItem(), IResolvesDex {
 
     // -------------------------------------------------------------------------------------

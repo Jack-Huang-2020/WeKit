@@ -12,7 +12,7 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "系统与隐私/强制平板模式", description = "让微信将当前设备识别为平板")
+@HookItem(name = "强制平板模式", categories = ["系统与隐私"], description = "让微信将当前设备识别为平板")
 object ForceTabletMode : SwitchHookItem(), IResolvesDex {
 
     private val methodIsTablet by dexMethod()

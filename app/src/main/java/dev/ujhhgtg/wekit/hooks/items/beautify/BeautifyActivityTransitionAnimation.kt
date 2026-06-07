@@ -13,10 +13,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
 
-@HookItem(
-    path = "界面美化/美化活动过渡动画",
-    description = "将部分活动过渡动画替换为默认过渡或元素级共享动画 (没做完)"
-)
+@HookItem(name = "美化活动过渡动画", categories = ["界面美化"], description = "将部分活动过渡动画替换为默认过渡或元素级共享动画 (没做完)")
 object BeautifyActivityTransitionAnimation : SwitchHookItem() {
 
     private val TAG = nameOf(BeautifyActivityTransitionAnimation)

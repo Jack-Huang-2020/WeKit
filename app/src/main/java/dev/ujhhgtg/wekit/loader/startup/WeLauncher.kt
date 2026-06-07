@@ -18,7 +18,6 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.invokeOriginal
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.int
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
@@ -45,10 +44,7 @@ object WeLauncher {
 
     private fun initMainProcessHooks() {
         // fix up Jetpack Compose
-        Resources::class.asResolver().firstMethod {
-            name = "getString"
-            parameters(int)
-        }.hookBeforeDirectly {
+        Resources::class.java.getDeclaredMethod("getString", int).hookBeforeDirectly {
             result = runCatching { invokeOriginal() }.getOrNull() ?: "null"
         }
 

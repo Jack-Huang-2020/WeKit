@@ -15,7 +15,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "个人资料/移除个性签名限制", description = "允许大于 30 字与包含特殊字符的个性签名")
+@HookItem(name = "移除个性签名限制", categories = ["个人资料"], description = "允许大于 30 字与包含特殊字符的个性签名")
 object RemoveSignatureLimits : SwitchHookItem(), IResolvesDex {
 
     private lateinit var stringMatchesMethodUnhook: XC_MethodHook.Unhook

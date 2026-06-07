@@ -26,7 +26,7 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.exp
 
-@HookItem(path = "聊天/左划引用消息", description = "在消息上左划以引用")
+@HookItem(name = "左划引用消息", categories = ["聊天"], description = "在消息上左划以引用")
 object SwipeToQuote : SwitchHookItem(), IResolvesDex,
     WeChatMessageViewApi.ICreateViewListener {
 

@@ -21,7 +21,7 @@ import dev.ujhhgtg.wekit.utils.reflection.BInt
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/移除消息菜单项", description = "从消息的长按菜单中移除指定名称的菜单项")
+@HookItem(name = "移除消息菜单项", categories = ["聊天"], description = "从消息的长按菜单中移除指定名称的菜单项")
 object RemoveChatMessageContextMenuItems : ClickableHookItem(), IResolvesDex {
 
     // although there are multiple addMenuItem() methods, i only found the usage of those two in the context menu of chat messages

@@ -10,10 +10,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.crash.CrashLogsManager
 import dev.ujhhgtg.wekit.utils.crash.JavaCrashHandler
 
-@HookItem(
-    path = "调试/崩溃拦截",
-    description = "拦截 Java 层崩溃并记录详细信息，支持查看和导出日志"
-)
+@HookItem(name = "崩溃拦截", categories = ["调试"], description = "拦截 Java 层崩溃并记录详细信息，支持查看和导出日志")
 object CrashInterceptor : SwitchHookItem() {
 
     private val TAG = This.Class.simpleName

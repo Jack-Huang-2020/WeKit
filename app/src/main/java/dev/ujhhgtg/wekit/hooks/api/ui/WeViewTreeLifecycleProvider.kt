@@ -8,7 +8,7 @@ import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.rootView
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 
-@HookItem(path = "API/Compose 生命周期提供方")
+@HookItem(name = "Compose 生命周期提供方", categories = ["API"])
 object WeViewTreeLifecycleProvider : ApiHookItem() {
 
     override fun onEnable() {

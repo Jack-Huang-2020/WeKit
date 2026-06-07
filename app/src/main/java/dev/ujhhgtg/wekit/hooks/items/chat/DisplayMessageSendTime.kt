@@ -27,7 +27,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import java.lang.reflect.Field
 
 
-@HookItem(path = "聊天/显示消息时间", description = "显示精确消息发送时间")
+@HookItem(name = "显示消息时间", categories = ["聊天"], description = "显示精确消息发送时间")
 object DisplayMessageSendTime : ClickableHookItem(),
     WeChatMessageViewApi.ICreateViewListener {
 

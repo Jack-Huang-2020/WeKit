@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "个人资料/上传透明头像", description = "头像上传时使用 PNG 格式保持透明")
+@HookItem(name = "上传透明头像", categories = ["个人资料"], description = "头像上传时使用 PNG 格式保持透明")
 object UploadTransparentAvatars : SwitchHookItem(), IResolvesDex {
 
     private val TAG = This.Class.simpleName

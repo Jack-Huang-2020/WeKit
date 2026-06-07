@@ -29,7 +29,7 @@ import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.luckypray.dexkit.DexKitBridge
 
 // https://github.com/Ujhhgtg/PandorasBox
-@HookItem(path = "系统与隐私/预见性返回动画", description = "为微信的活动强制启用预见性返回动画 [需 SDK >= 33]")
+@HookItem(name = "预见性返回动画", categories = ["系统与隐私"], description = "为微信的活动强制启用预见性返回动画 [需 SDK >= 33]")
 object PredictiveBackGestures : ClickableHookItem(), IResolvesDex {
 
     private const val PRIVATE_FLAG_ENABLE_ON_BACK_INVOKED_CALLBACK = 1 shl 2

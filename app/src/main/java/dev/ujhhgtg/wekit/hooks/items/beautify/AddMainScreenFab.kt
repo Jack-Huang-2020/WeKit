@@ -68,7 +68,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.system.exitProcess
 
-@HookItem(path = "界面美化/主屏幕添加 FAB", description = "向微信主屏幕添加浮动操作按钮")
+@HookItem(name = "主屏幕添加 FAB", categories = ["界面美化"], description = "向微信主屏幕添加浮动操作按钮")
 object AddMainScreenFab : SwitchHookItem() {
 
     interface IMenuItemsProvider {

@@ -5,7 +5,7 @@ import com.highcapable.kavaref.extension.toClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 
-@HookItem(path = "聊天/自动启用发送原图", description = "发送媒体时自动勾选发送原图选项")
+@HookItem(name = "自动启用发送原图", categories = ["聊天"], description = "发送媒体时自动勾选发送原图选项")
 object AutoEnableNoCompressOnSendMedia : SwitchHookItem() {
 
     override fun onEnable() {

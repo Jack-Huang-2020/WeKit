@@ -52,7 +52,7 @@ import kotlinx.coroutines.withContext
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
-@HookItem(path = "系统与隐私/灰度测试管理器", description = "覆盖微信灰度测试 (Feature Flag) 的值")
+@HookItem(name = "灰度测试管理器", categories = ["系统与隐私"], description = "覆盖微信灰度测试 (Feature Flag) 的值")
 object FeatureFlagManager : ClickableHookItem(), IResolvesDex {
 
     private val TAG = nameOf(FeatureFlagManager)

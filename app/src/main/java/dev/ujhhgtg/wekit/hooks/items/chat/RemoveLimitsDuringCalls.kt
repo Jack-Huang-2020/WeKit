@@ -7,7 +7,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
-@HookItem(path = "聊天/移除通话时聊天限制", description = "绕过正在通话时聊天限制")
+@HookItem(name = "移除通话时聊天限制", categories = ["聊天"], description = "绕过正在通话时聊天限制")
 object RemoveLimitsDuringCalls : SwitchHookItem(), IResolvesDex {
 
     override fun onEnable() {

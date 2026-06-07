@@ -124,7 +124,7 @@ private sealed class PrefRow {
         val title: String,
         val summary: String,
         val initialChecked: Boolean,
-        val onBeforeToggle: (Boolean) -> Boolean,
+        val onBeforeToggle: (Context, Boolean) -> Boolean,
         val bindCompletionCallback: ((Boolean) -> Unit) -> Unit,
     ) : PrefRow()
 
@@ -135,7 +135,7 @@ private sealed class PrefRow {
         val summary: String,
         val showSwitch: Boolean,
         val initialChecked: Boolean,
-        val onBeforeToggle: (Boolean) -> Boolean,
+        val onBeforeToggle: (Context, Boolean) -> Boolean,
         val bindCompletionCallback: ((Boolean) -> Unit) -> Unit,
         val onClick: (Context) -> Unit,
     ) : PrefRow()
@@ -371,7 +371,7 @@ abstract class BasePrefsScreen(private val title: String) {
         title: String,
         summary: String,
         initialChecked: Boolean,
-        onBeforeToggle: (Boolean) -> Boolean,
+        onBeforeToggle: (Context, Boolean) -> Boolean,
         bindCompletionCallback: ((Boolean) -> Unit) -> Unit,
     ) {
         val rk = nextKey("hsw_$key")
@@ -384,7 +384,7 @@ abstract class BasePrefsScreen(private val title: String) {
         summary: String,
         showSwitch: Boolean,
         initialChecked: Boolean,
-        onBeforeToggle: (Boolean) -> Boolean,
+        onBeforeToggle: (Context, Boolean) -> Boolean,
         bindCompletionCallback: ((Boolean) -> Unit) -> Unit,
         onClick: (Context) -> Unit
     ) {
@@ -488,12 +488,13 @@ private fun PreferenceCoreList(
                         row.bindCompletionCallback { switchStates[row.configKey] = it }
                         onDispose {}
                     }
+                    val context = LocalContext.current
                     HookSwitchRow(
                         title = row.title,
                         summary = row.summary,
                         checked = checked,
                         onCheckedChange = { requested ->
-                            if (row.onBeforeToggle(requested)) switchStates[row.configKey] = requested
+                            if (row.onBeforeToggle(context, requested)) switchStates[row.configKey] = requested
                         },
                     )
                 }
@@ -503,13 +504,14 @@ private fun PreferenceCoreList(
                         row.bindCompletionCallback { switchStates[row.configKey] = it }
                         onDispose {}
                     }
+                    val context = LocalContext.current
                     HookClickableRow(
                         title = row.title,
                         summary = row.summary,
                         showSwitch = row.showSwitch,
                         checked = checked,
                         onCheckedChange = { requested ->
-                            if (row.onBeforeToggle(requested)) switchStates[row.configKey] = requested
+                            if (row.onBeforeToggle(context, requested)) switchStates[row.configKey] = requested
                         },
                         onClick = row.onClick,
                     )

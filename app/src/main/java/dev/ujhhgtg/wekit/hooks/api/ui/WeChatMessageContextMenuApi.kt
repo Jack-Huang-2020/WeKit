@@ -18,7 +18,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
 @SuppressLint("StaticFieldLeak")
-@HookItem(path = "API/聊天界面消息菜单扩展", description = "为聊天界面消息长按菜单提供添加菜单项功能")
+@HookItem(name = "聊天界面消息菜单扩展", categories = ["API"], description = "为聊天界面消息长按菜单提供添加菜单项功能")
 object WeChatMessageContextMenuApi : ApiHookItem(), IResolvesDex {
 
     interface IMenuItemsProvider {

@@ -8,7 +8,7 @@ import dev.ujhhgtg.wekit.utils.reflection.BInt
 import dev.ujhhgtg.wekit.utils.reflection.bool
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/禁用消息折叠", description = "阻止聊天消息被折叠")
+@HookItem(name = "禁用消息折叠", categories = ["聊天"], description = "阻止聊天消息被折叠")
 object DisableMessageCollapsing : SwitchHookItem(), IResolvesDex {
 
     private val methodFoldMsg by dexMethod()

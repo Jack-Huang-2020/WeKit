@@ -8,7 +8,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
-@HookItem(path = "系统与隐私/自动批准设备登录", description = "其他设备请求登录时自动勾选选项并点击按钮")
+@HookItem(name = "自动批准设备登录", categories = ["系统与隐私"], description = "其他设备请求登录时自动勾选选项并点击按钮")
 object AutoApproveDeviceLogin : SwitchHookItem() {
 
     private const val AUTO_SYNC_MESSAGES = 0x1

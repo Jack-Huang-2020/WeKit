@@ -10,7 +10,7 @@ import org.luckypray.dexkit.DexKitBridge
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 
-@HookItem(path = "聊天/重定向文件下载路径", description = "将聊天文件下载到标准文件夹 Download")
+@HookItem(name = "重定向文件下载路径", categories = ["聊天"], description = "将聊天文件下载到标准文件夹 Download")
 object RedirectDownloadPath : SwitchHookItem(), IResolvesDex {
 
     override fun onEnable() {

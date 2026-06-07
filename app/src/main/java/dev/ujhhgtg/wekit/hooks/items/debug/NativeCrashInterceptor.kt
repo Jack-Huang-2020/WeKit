@@ -10,10 +10,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.crash.CrashLogsManager
 import dev.ujhhgtg.wekit.utils.crash.NativeCrashHandler
 
-@HookItem(
-    path = "调试/崩溃拦截 (Native)",
-    description = "拦截 Native 层崩溃并记录详细信息，支持查看和导出日志"
-)
+@HookItem(name = "崩溃拦截 (Native)", categories = ["调试"], description = "拦截 Native 层崩溃并记录详细信息，支持查看和导出日志")
 object NativeCrashInterceptor : SwitchHookItem() {
 
     private val TAG = nameOf(NativeCrashInterceptor)

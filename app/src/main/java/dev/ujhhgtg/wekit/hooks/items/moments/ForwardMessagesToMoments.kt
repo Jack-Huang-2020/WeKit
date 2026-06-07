@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.utils.android.Intent
 import dev.ujhhgtg.wekit.utils.removeWxIdPrefix
 
 @Suppress("DEPRECATION")
-@HookItem(path = "朋友圈/消息转圈", description = "将一些简单的消息转发到朋友圈")
+@HookItem(name = "消息转圈", categories = ["朋友圈"], description = "将一些简单的消息转发到朋友圈")
 object ForwardMessagesToMoments : SwitchHookItem(), WeChatMessageContextMenuApi.IMenuItemsProvider {
 
     override fun onEnable() {

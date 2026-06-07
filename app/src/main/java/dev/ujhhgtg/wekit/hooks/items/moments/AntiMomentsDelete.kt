@@ -8,10 +8,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 
-@HookItem(
-    path = "朋友圈/拦截朋友圈删除",
-    description = "拦截他人朋友圈删除并添加标记"
-)
+@HookItem(name = "拦截朋友圈删除", categories = ["朋友圈"], description = "拦截他人朋友圈删除并添加标记")
 object AntiMomentsDelete : SwitchHookItem(), WeDatabaseListenerApi.IUpdateListener {
 
     private val TAG = nameOf(AntiMomentsDelete)

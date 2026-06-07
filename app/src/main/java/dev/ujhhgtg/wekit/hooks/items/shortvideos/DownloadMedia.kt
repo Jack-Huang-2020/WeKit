@@ -25,10 +25,7 @@ import kotlin.io.path.div
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
-@HookItem(
-    path = "视频号/下载媒体",
-    description = "向视频分享菜单中添加「复制链接」与「下载」菜单项"
-)
+@HookItem(name = "下载媒体", categories = ["视频号"], description = "向视频分享菜单中添加「复制链接」与「下载」菜单项")
 object DownloadMedia : SwitchHookItem(),
     WeShortVideosShareMenuApi.IMenuItemsProvider {
 

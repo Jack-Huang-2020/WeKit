@@ -5,13 +5,13 @@ import android.content.ContextWrapper
 import android.content.Intent
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.comptime.This
+import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.resolve
 import java.util.concurrent.CopyOnWriteArrayList
 
-@HookItem(path = "API/活动启动监听服务", description = "提供 startActivity 监听能力")
+@HookItem(name = "活动启动监听服务", categories = ["API"], description = "提供 startActivity 监听能力")
 object WeStartActivityApi : ApiHookItem() {
 
     interface IStartActivityListener {
@@ -31,35 +31,27 @@ object WeStartActivityApi : ApiHookItem() {
     }
 
     override fun onEnable() {
-        Activity::class.resolve()
-            .method {
-                name {
-                    it == "startActivity" || it == "startActivityForResult"
-                }
+        listOf(
+            Activity::class.java,
+            ContextWrapper::class.java
+        ).forEach { clazz -> clazz.declaredMethods.forEach {
+            if (it.name != "startActivity" && it.name != "startActivityForResult") {
+                return@forEach
             }
-            .forEach {
-                it.hookBefore {
-                    hookStartActivity(this)
-                }
+            it.hookBefore {
+                handleStartActivity(this)
             }
-
-        ContextWrapper::class.resolve()
-            .method {
-                name {
-                    it == "startActivity" || it == "startActivityForResult"
-                }
-            }
-            .forEach {
-                it.hookBefore {
-                    hookStartActivity(this)
-                }
-            }
+        } }
     }
 
-    private fun hookStartActivity(param: XC_MethodHook.MethodHookParam) {
+    private fun handleStartActivity(param: XC_MethodHook.MethodHookParam) {
         val intent = param.args[0] as? Intent ?: param.args[1] as? Intent
         if (intent == null) {
             WeLogger.w(TAG, "startActivity called but no Intent found in arguments")
+            return
+        }
+
+        if (intent.getBooleanExtra(BuildConfig.TAG, false)) {
             return
         }
 

@@ -12,7 +12,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import java.lang.reflect.Field
 
-@HookItem(path = "聊天/合并消息显示", description = "将同一发送者的连续多条消息合并为一组消息显示 (Telegram 风格)")
+@HookItem(name = "合并消息显示", categories = ["聊天"], description = "将同一发送者的连续多条消息合并为一组消息显示 (Telegram 风格)")
 object MergeMessagesIntoGroups : SwitchHookItem(), WeChatMessageViewApi.ICreateViewListener {
 
     override fun onEnable() {

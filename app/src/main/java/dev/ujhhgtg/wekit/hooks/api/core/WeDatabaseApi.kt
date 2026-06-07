@@ -28,7 +28,7 @@ import java.lang.reflect.Modifier
  * 微信数据库 API
  */
 @SuppressLint("DiscouragedApi")
-@HookItem(path = "API/数据库服务", description = "提供数据库直接查询能力")
+@HookItem(name = "数据库服务", categories = ["API"], description = "提供数据库直接查询能力")
 object WeDatabaseApi : ApiHookItem(), IResolvesDex {
 
     private val classMmKernel by dexClass()

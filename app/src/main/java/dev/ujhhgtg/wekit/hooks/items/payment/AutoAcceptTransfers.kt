@@ -17,7 +17,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "红包与支付/自动接收转账", description = "监听消息并自动接收转账")
+@HookItem(name = "自动接收转账", categories = ["红包与支付"], description = "监听消息并自动接收转账")
 object AutoAcceptTransfers : SwitchHookItem(), IResolvesDex, WeDatabaseListenerApi.IInsertListener {
 
     private val TAG = This.Class.simpleName

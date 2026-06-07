@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.removeWxIdPrefix
 
 @Suppress("DEPRECATION")
-@HookItem(path = "聊天/消息复读", description = "复读一些简单的消息")
+@HookItem(name = "消息复读", categories = ["聊天"], description = "复读一些简单的消息")
 object RepeatMessages : SwitchHookItem(), WeChatMessageContextMenuApi.IMenuItemsProvider {
 
     override fun onEnable() {

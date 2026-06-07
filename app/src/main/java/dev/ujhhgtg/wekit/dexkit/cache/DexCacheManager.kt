@@ -22,7 +22,7 @@ import kotlin.io.path.writeText
  * Dex 缓存管理器
  * 负责管理 Dex 查找结果的缓存，支持版本控制和增量更新。
  *
- * 缓存的 key → value 由各 [dev.ujhhgtg.wekit.dexkit.dsl.DexDelegateBase] 直接提供
+ * 缓存的 key → value 由各 [dev.ujhhgtg.wekit.dexkit.dsl.BaseDexDelegate] 直接提供
  */
 object DexCacheManager {
 
@@ -59,9 +59,9 @@ object DexCacheManager {
     fun isItemCacheValid(item: IResolvesDex): Boolean {
         if (item !is BaseHookItem) unreachable()
 
-        val cacheFile = getCacheFile(item.path)
+        val cacheFile = getCacheFile(item.name)
         if (!cacheFile.exists()) {
-            WeLogger.d(TAG, "cache not found for ${item.path}")
+            WeLogger.d(TAG, "cache not found for ${item.name}")
             return false
         }
 
@@ -71,7 +71,7 @@ object DexCacheManager {
             val cachedHash = json.optString("methodHash", "")
             val currentHash = calculateMethodHash(item)
             if (cachedHash != currentHash) {
-                WeLogger.d(TAG, "resolveDex of ${item.path} changed: cached=$cachedHash, current=$currentHash")
+                WeLogger.d(TAG, "resolveDex of ${item.displayName} changed: cached=$cachedHash, current=$currentHash")
                 return false
             }
 
@@ -82,13 +82,13 @@ object DexCacheManager {
             }
 
             if (missingOrEmpty.isNotEmpty()) {
-                WeLogger.d(TAG, "cache incomplete for ${item.path}, missing keys: ${missingOrEmpty.map { it.key }}")
+                WeLogger.d(TAG, "cache incomplete for ${item.displayName}, missing keys: ${missingOrEmpty.map { it.key }}")
                 return false
             }
 
             true
         } catch (e: Exception) {
-            WeLogger.e(TAG, "failed to read cache for: ${item.path}", e)
+            WeLogger.e(TAG, "failed to read cache for: ${item.displayName}", e)
             false
         }
     }
@@ -102,7 +102,7 @@ object DexCacheManager {
             error("item is not BaseHookItem")
         }
 
-        val cacheFile = getCacheFile(item.path)
+        val cacheFile = getCacheFile(item.name)
         try {
             val json = JSONObject()
             json.put("methodHash", calculateMethodHash(item))
@@ -113,9 +113,9 @@ object DexCacheManager {
             }
 
             cacheFile.writeText(json.toString(2))
-            WeLogger.d(TAG, "cache saved for: ${item.path}")
+            WeLogger.d(TAG, "cache saved for: ${item.displayName}")
         } catch (e: Exception) {
-            WeLogger.e(TAG, "failed to save cache for: ${item.path}", e)
+            WeLogger.e(TAG, "failed to save cache for: ${item.displayName}", e)
         }
     }
 
@@ -128,7 +128,7 @@ object DexCacheManager {
             error("item is not BaseHookItem")
         }
 
-        val cacheFile = getCacheFile(item.path)
+        val cacheFile = getCacheFile(item.name)
         if (!cacheFile.exists()) return null
 
         return try {
@@ -139,7 +139,7 @@ object DexCacheManager {
                 }
             }
         } catch (e: Exception) {
-            WeLogger.e(TAG, "failed to load cache for: ${item.path}", e)
+            WeLogger.e(TAG, "failed to load cache for: ${item.displayName}", e)
             null
         }
     }

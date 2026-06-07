@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
-@HookItem(path = "API/微信服务管理服务", description = "提供获取并使用微信服务的能力")
+@HookItem(name = "微信服务管理服务", categories = ["API"], description = "提供获取并使用微信服务的能力")
 object WeServiceApi : ApiHookItem(), IResolvesDex {
 
     private val methodServiceManagerGetService by dexMethod()

@@ -62,7 +62,7 @@ import org.commonmark.node.OrderedList
 import org.commonmark.node.Paragraph
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/Markdown 渲染", description = "渲染 Markdown 消息")
+@HookItem(name = "Markdown 渲染", categories = ["聊天"], description = "渲染 Markdown 消息")
 object MarkdownRendering : ClickableHookItem(), IResolvesDex {
 
     private val TAG = This.Class.simpleName

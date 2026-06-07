@@ -5,7 +5,7 @@ import com.highcapable.kavaref.extension.toClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 
-@HookItem(path = "聊天/移除媒体发送数量限制", description = "移除发送媒体的数量限制")
+@HookItem(name = "移除媒体发送数量限制", categories = ["聊天"], description = "移除发送媒体的数量限制")
 object RemoveSendMediaCountLimit : SwitchHookItem() {
 
     override fun onEnable() {

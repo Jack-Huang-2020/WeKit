@@ -20,7 +20,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "红包与支付/修改显示余额", description = "伪装钱包余额文字")
+@HookItem(name = "修改显示余额", categories = ["红包与支付"], description = "伪装钱包余额文字")
 object ModifyWalletBalanceDisplay : ClickableHookItem(), IResolvesDex {
 
     private const val KEY_BALANCE = "fake_wallet_balance"

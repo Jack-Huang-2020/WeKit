@@ -6,7 +6,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.dexkit.dsl.DexConstructorDelegate
-import dev.ujhhgtg.wekit.dexkit.dsl.DexDelegateBase
+import dev.ujhhgtg.wekit.dexkit.dsl.BaseDexDelegate
 import dev.ujhhgtg.wekit.dexkit.dsl.DexMethodDelegate
 import dev.ujhhgtg.wekit.utils.HookAction
 import dev.ujhhgtg.wekit.utils.WeLogger
@@ -18,6 +18,9 @@ abstract class BaseHookItem {
 
     var name: String = ""
     var categories: List<String> = emptyList()
+
+    val displayName: String
+        get() = "${categories.joinToString(",")}/$name"
 
     var description: String = ""
 
@@ -59,9 +62,9 @@ abstract class BaseHookItem {
 
     open fun onDisable() {}
 
-    private val _dexDelegates = mutableListOf<DexDelegateBase>()
-    val dexDelegates: List<DexDelegateBase> get() = _dexDelegates
-    internal fun registerDexDelegate(d: DexDelegateBase) {
+    private val _dexDelegates = mutableListOf<BaseDexDelegate>()
+    val dexDelegates: List<BaseDexDelegate> get() = _dexDelegates
+    internal fun registerDexDelegate(d: BaseDexDelegate) {
         _dexDelegates += d
     }
 

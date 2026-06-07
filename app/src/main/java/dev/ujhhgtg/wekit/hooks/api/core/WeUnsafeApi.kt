@@ -6,7 +6,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
 import java.lang.reflect.Method
 
-@HookItem(path = "API/Unsafe 服务", description = "提供调用 sun.misc.Unsafe 功能的能力")
+@HookItem(name = "Unsafe 服务", categories = ["API"], description = "提供调用 sun.misc.Unsafe 功能的能力")
 object WeUnsafeApi : ApiHookItem() {
 
     private lateinit var theUnsafe: Any

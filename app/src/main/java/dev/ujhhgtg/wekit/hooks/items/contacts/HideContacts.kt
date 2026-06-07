@@ -53,7 +53,7 @@ import kotlin.math.sqrt
 
 
 @HookItem(
-    path = "联系人与群组/隐藏联系人", description =
+    name = "隐藏联系人", categories = ["联系人与群组"], description =
         """隐藏指定的联系人
 隐藏位置:
 1. 首页对话列表

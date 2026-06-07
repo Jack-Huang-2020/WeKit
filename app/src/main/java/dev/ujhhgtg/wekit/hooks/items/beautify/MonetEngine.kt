@@ -25,7 +25,7 @@ import dev.ujhhgtg.wekit.utils.android.isDarkMode
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
-@HookItem(path = "界面美化/莫奈引擎", description = "为微信的部分组件启用动态壁纸取色 [需 SDK >= 31]")
+@HookItem(name = "莫奈引擎", categories = ["界面美化"], description = "为微信的部分组件启用动态壁纸取色 [需 SDK >= 31]")
 object MonetEngine : ClickableHookItem() {
 
     val isActive

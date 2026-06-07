@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 
-@HookItem(path = "娱乐/清空资料信息", description = "清空当前用户的地区与性别等资料信息")
+@HookItem(name = "清空资料信息", categories = ["娱乐"], description = "清空当前用户的地区与性别等资料信息")
 object ClearProfileDetails : ClickableHookItem() {
 
     override fun onClick(context: Context) {

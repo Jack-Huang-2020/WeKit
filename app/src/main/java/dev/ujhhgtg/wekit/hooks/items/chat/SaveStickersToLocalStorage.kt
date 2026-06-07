@@ -20,7 +20,7 @@ import org.luckypray.dexkit.DexKitBridge
 import kotlin.io.path.div
 import kotlin.io.path.outputStream
 
-@HookItem(path = "聊天/贴纸保存到本地", description = "在贴纸消息菜单添加保存按钮, 允许将图片保存到本地")
+@HookItem(name = "贴纸保存到本地", categories = ["聊天"], description = "在贴纸消息菜单添加保存按钮, 允许将图片保存到本地")
 object SaveStickersToLocalStorage : SwitchHookItem(), IResolvesDex,
     WeChatMessageContextMenuApi.IMenuItemsProvider {
 

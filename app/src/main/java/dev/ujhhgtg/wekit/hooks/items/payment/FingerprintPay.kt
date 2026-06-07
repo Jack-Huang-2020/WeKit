@@ -46,7 +46,7 @@ import dev.ujhhgtg.wekit.utils.nul
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 
 
-@HookItem(path = "红包与支付/指纹支付", description = "使用指纹快捷确认支付")
+@HookItem(name = "指纹支付", categories = ["红包与支付"], description = "使用指纹快捷确认支付")
 object FingerprintPay : ClickableHookItem() {
 
     private val TAG = This.Class.simpleName
@@ -56,7 +56,7 @@ object FingerprintPay : ClickableHookItem() {
 
     override fun startup() {
         if (TargetProcesses.currentType != TargetProcesses.PROC_MAIN && TargetProcesses.currentType != TargetProcesses.PROC_APPBRAND) return
-        _isEnabled = WePrefs.getBoolOrFalse(path)
+        _isEnabled = WePrefs.getBoolOrFalse(name)
         if (_isEnabled) enable()
     }
 

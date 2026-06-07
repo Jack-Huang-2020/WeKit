@@ -45,7 +45,7 @@ class CategorySettingsScreen(
             title = title,
             summary = summary,
             initialChecked = initialChecked,
-            onBeforeToggle = { checked ->
+            onBeforeToggle = { context, checked ->
                 val allowed = item.onBeforeToggle(checked, context)
                 if (allowed) {
                     WePrefs.putBool(configKey, checked)
@@ -75,7 +75,7 @@ class CategorySettingsScreen(
             summary = summary,
             showSwitch = !item.noSwitchWidget,
             initialChecked = initialChecked,
-            onBeforeToggle = { checked ->
+            onBeforeToggle = { context, checked ->
                 val allowed = item.onBeforeToggle(checked, context)
                 if (allowed) {
                     WePrefs.putBool(configKey, checked)
@@ -91,7 +91,7 @@ class CategorySettingsScreen(
             onClick = {
                 runCatching {
                     item.onClick(it)
-                }.onFailure { WeLogger.e(nameOf(BaseHookItem::class), "failed to execute onClick of ${item.name}") }
+                }.onFailure { WeLogger.e(nameOf(BaseHookItem::class), "failed to execute onClick of ${item.displayName}") }
             },
         )
     }

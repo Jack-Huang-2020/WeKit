@@ -15,7 +15,7 @@ import dev.ujhhgtg.wekit.utils.reflection.resolve
 import java.util.concurrent.CopyOnWriteArrayList
 
 @SuppressLint("DiscouragedApi")
-@HookItem(path = "API/数据库监听服务", description = "提供数据库插入、更新与查询监听能力")
+@HookItem(name = "数据库监听服务", categories = ["API"], description = "提供数据库插入、更新与查询监听能力")
 object WeDatabaseListenerApi : ApiHookItem() {
 
     fun interface IInsertListener {

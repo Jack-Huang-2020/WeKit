@@ -11,7 +11,7 @@ import org.json.JSONObject
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 
-@HookItem(path = "小程序/移除嵌入广告", description = "移除小程序嵌入广告")
+@HookItem(name = "移除嵌入广告", categories = ["小程序"], description = "移除小程序嵌入广告")
 object RemoveEmbeddedAds : SwitchHookItem(), IResolvesDex {
 
     private val ctorNetSceneJSOperateWxData by dexConstructor()

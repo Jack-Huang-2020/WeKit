@@ -8,7 +8,7 @@ import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 
-@HookItem(path = "调试/内存分析", description = "分析微信内存占用组成")
+@HookItem(name = "内存分析", categories = ["调试"], description = "分析微信内存占用组成")
 object ProfileMemory : ClickableHookItem() {
 
     private val TAG = nameOf(ProfileMemory)

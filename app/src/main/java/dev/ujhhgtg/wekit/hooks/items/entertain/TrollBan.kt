@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.utils.openInSystem
 import dev.ujhhgtg.wekit.utils.serialization.JsonToXmlConverter
 import org.json.JSONObject
 
-@HookItem(path = "娱乐/防止封号", description = "你 被 骗 了")
+@HookItem(name = "防止封号", categories = ["娱乐"], description = "你 被 骗 了")
 object TrollBan : ClickableHookItem() {
 
     override val noSwitchWidget = true

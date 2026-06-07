@@ -16,7 +16,7 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 
-@HookItem(path = "个人资料/设置微信昵称", description = "通过发包来更灵活的设置微信昵称")
+@HookItem(name = "设置微信昵称", categories = ["个人资料"], description = "通过发包来更灵活的设置微信昵称")
 object SetProfileNickname : ClickableHookItem() {
 
     override fun onClick(context: Context) {

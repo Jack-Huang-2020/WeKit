@@ -8,7 +8,7 @@ abstract class ClickableHookItem : SwitchHookItem() {
 
     override fun startup() {
         if (!TargetProcesses.isInMain) return
-        _isEnabled = WePrefs.getBoolOrFalse(path)
+        _isEnabled = WePrefs.getBoolOrFalse(name)
         if (_isEnabled || alwaysRun) enable()
     }
 

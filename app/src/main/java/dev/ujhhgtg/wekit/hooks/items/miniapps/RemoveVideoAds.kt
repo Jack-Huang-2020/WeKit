@@ -6,7 +6,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.json.JSONObject
 
-@HookItem(path = "小程序/移除视频广告", description = "跳过小程序视频广告")
+@HookItem(name = "移除视频广告", categories = ["小程序"], description = "跳过小程序视频广告")
 object RemoveVideoAds : SwitchHookItem() {
 
     override fun onEnable() {

@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.ui.content.SingleContactSelector
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 
-@HookItem(path = "娱乐/分裂群组", description = "让群聊一分为二")
+@HookItem(name = "分裂群组", categories = ["娱乐"], description = "让群聊一分为二")
 object SplitGroupChats : ClickableHookItem() {
 
     private val TAG = This.Class.simpleName

@@ -5,7 +5,7 @@ import com.highcapable.kavaref.extension.toClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 
-@HookItem(path = "红包与支付/允许领取私聊红包", description = "允许打开私聊中自己发出的红包")
+@HookItem(name = "允许领取私聊红包", categories = ["红包与支付"], description = "允许打开私聊中自己发出的红包")
 object AllowPrivateChatReceiveOutgoingRedPackets : SwitchHookItem() {
 
     override fun onEnable() {

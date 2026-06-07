@@ -22,10 +22,9 @@ import kotlin.reflect.KProperty
  * 所有 Dex 委托的公共接口，用于统一缓存读写。
  * 每个委托负责自己的序列化/反序列化。
  */
-sealed interface DexDelegateBase {
+sealed interface BaseDexDelegate {
     val key: String
     fun getDescriptorString(): String?
-
     /** 从缓存字符串恢复状态 */
     fun loadDescriptor(value: String)
 }
@@ -39,7 +38,7 @@ sealed interface DexDelegateBase {
  */
 class DexClassDelegate internal constructor(
     override val key: String
-) : ReadOnlyProperty<Any?, DexClassDelegate>, DexDelegateBase {
+) : ReadOnlyProperty<BaseHookItem, DexClassDelegate>, BaseDexDelegate {
 
     private var descriptorString: String? = null
     private var cachedClass: Class<*>? = null
@@ -103,7 +102,7 @@ class DexClassDelegate internal constructor(
     fun getClassData(dexKit: DexKitBridge): ClassData =
         dexKit.findClassData(getDescriptorString()!!)!!
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>): DexClassDelegate = this
+    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexClassDelegate = this
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +114,7 @@ class DexClassDelegate internal constructor(
  */
 class DexMethodDelegate internal constructor(
     override val key: String
-) : ReadOnlyProperty<BaseHookItem?, DexMethodDelegate>, DexDelegateBase {
+) : ReadOnlyProperty<BaseHookItem, DexMethodDelegate>, BaseDexDelegate {
 
     private var descriptor: DexMethodDescriptor? = null
     private var cachedMethod: Method? = null
@@ -190,7 +189,7 @@ class DexMethodDelegate internal constructor(
         return true
     }
 
-    override fun getValue(thisRef: BaseHookItem?, property: KProperty<*>): DexMethodDelegate = this
+    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexMethodDelegate = this
 }
 
 // ---------------------------------------------------------------------------
@@ -202,7 +201,7 @@ class DexMethodDelegate internal constructor(
  */
 class DexConstructorDelegate internal constructor(
     override val key: String
-) : ReadOnlyProperty<BaseHookItem?, DexConstructorDelegate>, DexDelegateBase {
+) : ReadOnlyProperty<BaseHookItem, DexConstructorDelegate>, BaseDexDelegate {
 
     private var descriptor: DexMethodDescriptor? = null
     private var cachedConstructor: Constructor<*>? = null
@@ -268,7 +267,7 @@ class DexConstructorDelegate internal constructor(
         return true
     }
 
-    override fun getValue(thisRef: BaseHookItem?, property: KProperty<*>): DexConstructorDelegate = this
+    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexConstructorDelegate = this
 }
 
 // ---------------------------------------------------------------------------
@@ -279,27 +278,27 @@ class DexConstructorDelegate internal constructor(
  * 创建 dexConstructor 委托，并将其注册到所属 HookItem 的委托列表中。
  */
 fun dexConstructor(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexConstructorDelegate>> =
-    PropertyDelegateProvider { thisRef, property ->
-        val key = "${thisRef::class.simpleName}:${property.name}"
-        DexConstructorDelegate(key).also { thisRef.registerDexDelegate(it) }
+    PropertyDelegateProvider { item, property ->
+        val key = "${item::class.simpleName}:${property.name}"
+        DexConstructorDelegate(key).also { item.registerDexDelegate(it) }
     }
 
 /**
  * 创建 dexClass 委托，并将其注册到所属 HookItem 的委托列表中。
  */
 fun dexClass(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexClassDelegate>> =
-    PropertyDelegateProvider { thisRef, property ->
-        val key = "${thisRef::class.simpleName}:${property.name}"
-        DexClassDelegate(key).also { thisRef.registerDexDelegate(it) }
+    PropertyDelegateProvider { item, property ->
+        val key = "${item::class.simpleName}:${property.name}"
+        DexClassDelegate(key).also { item.registerDexDelegate(it) }
     }
 
 /**
  * 创建 dexMethod 委托，并将其注册到所属 HookItem 的委托列表中。
  */
 fun dexMethod(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexMethodDelegate>> =
-    PropertyDelegateProvider { thisRef, property ->
-        val key = "${thisRef::class.simpleName}:${property.name}"
-        DexMethodDelegate(key).also { thisRef.registerDexDelegate(it) }
+    PropertyDelegateProvider { item, property ->
+        val key = "${item::class.simpleName}:${property.name}"
+        DexMethodDelegate(key).also { item.registerDexDelegate(it) }
     }
 
 @Suppress("NOTHING_TO_INLINE")

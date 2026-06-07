@@ -62,10 +62,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
-@HookItem(
-    path = "界面美化/美化首页底部导航栏",
-    description = "将首页底部导航栏替换为 Material Design 或 Backdrop 风格"
-)
+@HookItem(name = "美化首页底部导航栏", categories = ["界面美化"], description = "将首页底部导航栏替换为 Material Design 或 Backdrop 风格")
 object ReplaceNavigationBar : ClickableHookItem(), IResolvesDex {
 
     private val ICONS = listOf(

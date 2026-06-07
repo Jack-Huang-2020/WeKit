@@ -6,7 +6,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
-@HookItem(path = "系统与隐私/禁止屏幕高亮度", description = "禁止微信将屏幕亮度设置得过高")
+@HookItem(name = "禁止屏幕高亮度", categories = ["系统与隐私"], description = "禁止微信将屏幕亮度设置得过高")
 object DisableHighBrightness : SwitchHookItem() {
 
     override fun onEnable() {

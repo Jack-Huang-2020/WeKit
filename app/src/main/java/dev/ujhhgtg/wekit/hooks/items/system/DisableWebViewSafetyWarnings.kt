@@ -6,7 +6,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "系统与隐私/禁用 WebView 安全警告", description = "禁用 WebView 相关的安全警告提示")
+@HookItem(name = "禁用 WebView 安全警告", categories = ["系统与隐私"], description = "禁用 WebView 相关的安全警告提示")
 object DisableWebViewSafetyWarnings : SwitchHookItem(), IResolvesDex {
     private val methodGetIsInterceptEnabled by dexMethod()
     private val methodGetIsUrlSafe by dexMethod()

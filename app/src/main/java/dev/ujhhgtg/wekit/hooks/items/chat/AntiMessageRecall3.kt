@@ -23,7 +23,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/阻止消息撤回 3", description = "有撤回提示")
+@HookItem(name = "阻止消息撤回 3", categories = ["聊天"], description = "有撤回提示")
 object AntiMessageRecall3 : ClickableHookItem(), IResolvesDex {
 
     private val TAG = This.Class.simpleName

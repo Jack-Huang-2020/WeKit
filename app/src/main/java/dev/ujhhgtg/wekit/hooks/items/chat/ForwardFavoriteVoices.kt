@@ -26,7 +26,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 
-@HookItem(path = "聊天/转发收藏语音", description = "在聊天菜单的「收藏」中允许转发语音")
+@HookItem(name = "转发收藏语音", categories = ["聊天"], description = "在聊天菜单的「收藏」中允许转发语音")
 object ForwardFavoriteVoices : SwitchHookItem() {
 
     @OptIn(ExperimentalSerializationApi::class)

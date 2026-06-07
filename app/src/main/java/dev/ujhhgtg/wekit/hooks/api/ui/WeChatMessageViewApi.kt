@@ -14,7 +14,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.util.concurrent.CopyOnWriteArrayList
 
-@HookItem(path = "API/消息 View 创建监听服务", description = "提供消息 View 创建监听能力")
+@HookItem(name = "消息 View 创建监听服务", categories = ["API"], description = "提供消息 View 创建监听能力")
 object WeChatMessageViewApi : ApiHookItem(), IResolvesDex {
 
     interface ICreateViewListener {

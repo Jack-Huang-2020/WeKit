@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "系统与隐私/恢复旧版卡包界面", description = "使用旧版「卡包」而非「小店与卡包」")
+@HookItem(name = "恢复旧版卡包界面", categories = ["系统与隐私"], description = "使用旧版「卡包」而非「小店与卡包」")
 object UseLegacyWalletView : SwitchHookItem(), IResolvesDex {
 
     override fun onEnable() {

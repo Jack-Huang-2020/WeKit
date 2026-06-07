@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.HostInfo
 
-@HookItem(path = "聊天/分享进化", description = "让微信的系统分享菜单更易用 (没写完)")
+@HookItem(name = "分享进化", categories = ["聊天"], description = "让微信的系统分享菜单更易用 (没写完)")
 object ExternalSharingEvolved : SwitchHookItem() {
 
     override fun onEnable() {

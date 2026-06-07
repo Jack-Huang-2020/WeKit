@@ -45,7 +45,7 @@ import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.luckypray.dexkit.DexKitBridge
 
 
-@HookItem(path = "界面美化/应用全局背景", description = "将微信背景替换为图片或视频 (没写完)")
+@HookItem(name = "应用全局背景", categories = ["界面美化"], description = "将微信背景替换为图片或视频 (没写完)")
 object ApplyGlobalBackground : ClickableHookItem(), IResolvesDex {
 
     private val TAG = This.Class.simpleName

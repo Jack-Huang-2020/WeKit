@@ -8,7 +8,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "小程序/移除开屏广告", description = "跳过小程序开屏广告")
+@HookItem(name = "移除开屏广告", categories = ["小程序"], description = "跳过小程序开屏广告")
 object RemoveSplashAds : SwitchHookItem(), IResolvesDex {
 
     private val methodIsAdContact by dexMethod()

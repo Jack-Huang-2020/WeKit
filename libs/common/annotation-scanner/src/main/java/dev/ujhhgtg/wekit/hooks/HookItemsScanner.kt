@@ -1,7 +1,6 @@
 package dev.ujhhgtg.wekit.hooks
 
 import com.google.devtools.ksp.KspExperimental
-import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -19,7 +18,6 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import dev.ujhhgtg.wekit.hooks.core.HookItem
 
 private const val PACKAGE_NAME = "dev.ujhhgtg.wekit"
 private const val HOOKS_CORE_PACKAGE = "$PACKAGE_NAME.hooks.core"
@@ -64,7 +62,7 @@ class HookItemsScanner(
 
         val sortedSymbols = symbols.sortedWith(
             compareBy(
-                // SwitchHookItem first, ClickableHookItem second, others last
+                // SwitchHookItem first, ClickableHookItem second
                 { symbol ->
                     val superTypes = symbol.superTypes
                         .map { it.resolve().declaration.qualifiedName?.asString() }
@@ -75,10 +73,11 @@ class HookItemsScanner(
                         else -> 2
                     }
                 },
-                // Then alphabetically by the last path segment (item name)
+                // Then alphabetically by item name safely
                 { symbol ->
-                    val hookItem = symbol.getAnnotationsByType(HookItem::class).firstOrNull()
-                    hookItem?.name.orEmpty()
+                    val annotation = symbol.annotations.first { it.shortName.asString() == "HookItem" }
+                    val nameArg = annotation.arguments.find { it.name?.asString() == "name" } ?: annotation.arguments[0]
+                    nameArg.value as String
                 }
             )
         )
@@ -92,17 +91,21 @@ class HookItemsScanner(
             addStatement("listOf(")
             indent()
             for (symbol in sortedSymbols) {
-                val hookItem = symbol.getAnnotationsByType(HookItem::class).first()
                 val typeName = symbol.toClassName()
 
-                // Inline apply {} so path/description are set on construction,
-                // making the generated list a clean one-liner per entry.
+                // Extract annotation values safely using standard KSP API
+                val annotation = symbol.annotations.first { it.shortName.asString() == "HookItem" }
+                val name = (annotation.arguments.find { it.name?.asString() == "name" } ?: annotation.arguments[0]).value as String
+                val categories = (annotation.arguments.find { it.name?.asString() == "categories" } ?: annotation.arguments[1]).value as List<*>
+                val description = (annotation.arguments.find { it.name?.asString() == "description" } ?: annotation.arguments.getOrNull(2))?.value as? String ?: ""
+
+                // Inline apply {} so path/description are set on construction
                 addStatement(
                     "%T.apply·{ name·=·%S; categories·=·listOf(%L); description·=·%S },",
                     typeName,
-                    hookItem.name,
-                    hookItem.categories.joinToString(", ") { "\"$it\"" },
-                    hookItem.description,
+                    name,
+                    categories.joinToString(", ") { "\"$it\"" },
+                    description,
                 )
             }
             unindent()

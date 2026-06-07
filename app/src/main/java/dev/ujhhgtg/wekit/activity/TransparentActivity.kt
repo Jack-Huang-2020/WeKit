@@ -10,6 +10,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
+import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.utils.android.isDarkMode
 
 class TransparentActivity : FragmentActivity() {
@@ -38,7 +39,9 @@ class TransparentActivity : FragmentActivity() {
         fun launch(context: Context, action: FragmentActivity.() -> Unit) {
             pendingAction = action
             context.startActivity(
-                Intent(context, TransparentActivity::class.java)
+                Intent(context, TransparentActivity::class.java).apply {
+                    putExtra(BuildConfig.TAG, true)
+                }
             )
         }
     }

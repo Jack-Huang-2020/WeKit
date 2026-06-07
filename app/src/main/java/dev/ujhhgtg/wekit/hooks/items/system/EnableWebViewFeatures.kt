@@ -11,7 +11,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "系统与隐私/强制启用 WebView 菜单", description = "强制显示 WebView 页面右上角菜单按钮")
+@HookItem(name = "强制启用 WebView 菜单", categories = ["系统与隐私"], description = "强制显示 WebView 页面右上角菜单按钮")
 object EnableWebViewFeatures : SwitchHookItem(), IResolvesDex {
 
     private val TRUE_INTENT_KEYS =

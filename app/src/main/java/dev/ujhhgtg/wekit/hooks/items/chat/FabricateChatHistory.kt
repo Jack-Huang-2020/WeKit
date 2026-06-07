@@ -64,7 +64,7 @@ import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.random.Random
 
-@HookItem(path = "聊天/伪造聊天记录", description = "创建伪造的聊天记录并生成卡片消息 XML")
+@HookItem(name = "伪造聊天记录", categories = ["聊天"], description = "创建伪造的聊天记录并生成卡片消息 XML")
 object FabricateChatHistory : ClickableHookItem() {
 
     override val noSwitchWidget = true

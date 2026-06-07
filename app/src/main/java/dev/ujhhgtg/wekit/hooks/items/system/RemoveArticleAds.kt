@@ -10,7 +10,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import org.json.JSONArray
 import org.json.JSONObject
 
-@HookItem(path = "系统与隐私/去除文章广告", description = "清除文章中的广告数据")
+@HookItem(name = "去除文章广告", categories = ["系统与隐私"], description = "清除文章中的广告数据")
 object RemoveArticleAds : SwitchHookItem(), IWePacketInterceptor {
 
     private val TAG = nameOf(RemoveArticleAds)

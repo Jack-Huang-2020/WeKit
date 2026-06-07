@@ -43,17 +43,14 @@ import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.io.path.writeBytes
 
-@HookItem(
-    path = "通知/通知进化",
-    description = "让微信的新消息通知更易用\n1. 「快速回复」按钮\n2. 「标记为已读」按钮\n3. 使用原生对话样式 (MessagingStyle)"
-)
+@HookItem(name = "通知进化", categories = ["通知"], description = "让微信的新消息通知更易用\n1. 「快速回复」按钮\n2. 「标记为已读」按钮\n3. 使用原生对话样式 (MessagingStyle)")
 object NotificationsEvolved : SwitchHookItem() {
 
     private val TAG = nameOf(NotificationsEvolved)
 
     override fun startup() {
         if (!TargetProcesses.isInMain && TargetProcesses.currentType != TargetProcesses.PROC_PUSH) return
-        _isEnabled = WePrefs.getBoolOrFalse(path)
+        _isEnabled = WePrefs.getBoolOrFalse(name)
         if (_isEnabled) enable()
     }
 

@@ -61,7 +61,7 @@ import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Modifier
 import kotlin.io.path.div
 
-@HookItem(path = "API/设置模块入口")
+@HookItem(name = "设置模块入口", categories = ["API"])
 object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuApi.IMenuItemsProvider {
 
     private val methodSetKey by dexMethod()

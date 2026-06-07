@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.dexkit.abc
 
-import dev.ujhhgtg.wekit.dexkit.dsl.DexDelegateBase
+import dev.ujhhgtg.wekit.dexkit.dsl.BaseDexDelegate
 import org.luckypray.dexkit.DexKitBridge
 
 /**
@@ -15,7 +15,7 @@ interface IResolvesDex {
      * 当前 HookItem 持有的所有 Dex 委托。
      * 由 BaseHookItem 维护，由委托工厂函数自动填充。
      */
-    val dexDelegates: List<DexDelegateBase>
+    val dexDelegates: List<BaseDexDelegate>
 
     /**
      * 执行 DexKit 查找，将结果写入各委托自身。

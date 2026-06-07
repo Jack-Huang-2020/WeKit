@@ -64,7 +64,7 @@ import kotlinx.serialization.json.putJsonObject
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
-@HookItem(path = "系统与隐私/API 服务器", description = "启用 MCP 与 REST API 服务器, 让人类与 AI 能够访问微信能力")
+@HookItem(name = "API 服务器", categories = ["系统与隐私"], description = "启用 MCP 与 REST API 服务器, 让人类与 AI 能够访问微信能力")
 object ApiServer : ClickableHookItem() {
 
     private const val KEY_AUTH_TOKEN = "api_auth_token"

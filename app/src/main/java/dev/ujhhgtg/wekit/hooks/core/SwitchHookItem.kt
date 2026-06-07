@@ -10,7 +10,7 @@ abstract class SwitchHookItem : BaseHookItem() {
 
     override fun startup() {
         if (!TargetProcesses.isInMain) return
-        _isEnabled = WePrefs.getBoolOrFalse(path)
+        _isEnabled = WePrefs.getBoolOrFalse(name)
         if (_isEnabled) enable()
     }
 
@@ -24,12 +24,12 @@ abstract class SwitchHookItem : BaseHookItem() {
             _isEnabled = value
             if (!value) {
                 if (isLoaded) {
-                    WeLogger.i(nameOf(SwitchHookItem::class), "disabling $path...")
+                    WeLogger.i(nameOf(SwitchHookItem::class), "disabling $displayName...")
                     disable()
                     isLoaded = false
                 }
             } else {
-                WeLogger.i(nameOf(SwitchHookItem::class), "enabling $path...")
+                WeLogger.i(nameOf(SwitchHookItem::class), "enabling $displayName...")
                 enable()
                 isLoaded = true
             }
@@ -45,7 +45,7 @@ abstract class SwitchHookItem : BaseHookItem() {
     }
 
     fun applyToggle(newState: Boolean) {
-        WePrefs.putBool(path, newState)
+        WePrefs.putBool(name, newState)
         isEnabled = newState
         toggleCompletionCallback?.run()
     }

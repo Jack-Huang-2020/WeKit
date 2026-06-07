@@ -7,7 +7,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.android.showToast
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "聊天/拦截异常大小贴纸表情", description = "拦截某些异常大小表情导致的闪退现象")
+@HookItem(name = "拦截异常大小贴纸表情", categories = ["聊天"], description = "拦截某些异常大小表情导致的闪退现象")
 object BlockAbnormalSizeStickers : SwitchHookItem(), IResolvesDex {
 
     override fun onEnable() {

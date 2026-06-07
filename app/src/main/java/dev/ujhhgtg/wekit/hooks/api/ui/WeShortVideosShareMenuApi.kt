@@ -12,7 +12,7 @@ import org.json.JSONObject
 import org.luckypray.dexkit.DexKitBridge
 import java.util.LinkedList
 
-@HookItem(path = "API/视频号分享菜单扩展", description = "为视频号分享菜单提供添加菜单项功能")
+@HookItem(name = "视频号分享菜单扩展", categories = ["API"], description = "为视频号分享菜单提供添加菜单项功能")
 object WeShortVideosShareMenuApi : ApiHookItem(), IResolvesDex {
 
     interface IMenuItemsProvider {

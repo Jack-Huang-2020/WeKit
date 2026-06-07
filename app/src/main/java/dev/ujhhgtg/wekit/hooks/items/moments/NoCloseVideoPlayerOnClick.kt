@@ -15,10 +15,7 @@ import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
-@HookItem(
-    path = "朋友圈/单击不关闭视频播放器",
-    description = "朋友圈视频播放器内单击视频将展开/折叠控制栏而非关闭视频 (遇到长视频下意识点一下就给我视频关了, 有点反人类了)"
-)
+@HookItem(name = "单击不关闭视频播放器", categories = ["朋友圈"], description = "朋友圈视频播放器内单击视频将展开/折叠控制栏而非关闭视频 (遇到长视频下意识点一下就给我视频关了, 有点反人类了)")
 object NoCloseVideoPlayerOnClick : SwitchHookItem(), IResolvesDex {
 
     private lateinit var activityField: Field

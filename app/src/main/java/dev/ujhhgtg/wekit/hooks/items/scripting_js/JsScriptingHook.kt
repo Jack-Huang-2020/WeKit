@@ -16,7 +16,7 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.readText
 
-@HookItem(path = "脚本/脚本引擎", description = "执行 JavaScript 脚本")
+@HookItem(name = "脚本引擎", categories = ["脚本"], description = "执行 JavaScript 脚本")
 object JsScriptingHook : SwitchHookItem(),
     WeDatabaseListenerApi.IInsertListener, IWePacketInterceptor {
 

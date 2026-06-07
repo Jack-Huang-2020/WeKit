@@ -10,10 +10,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(
-    path = "系统与隐私/禁用存储空间不足检测",
-    description = "「隐藏应用列表」等隐藏 Root 模块有时会使应用获取到的可用空间不正确, 而微信在可用空间不足时会强制要求清理空间才可继续使用, 本功能移除了该限制"
-)
+@HookItem(name = "禁用存储空间不足检测", categories = ["系统与隐私"], description = "「隐藏应用列表」等隐藏 Root 模块有时会使应用获取到的可用空间不正确, 而微信在可用空间不足时会强制要求清理空间才可继续使用, 本功能移除了该限制")
 object DisableLowAvailableStorageDetection : SwitchHookItem(), IResolvesDex {
 
     private val methodSplashActivitySplashFinished by dexMethod()

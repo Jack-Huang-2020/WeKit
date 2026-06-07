@@ -9,10 +9,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
 
-@HookItem(
-    path = "联系人与群组/显示微信 ID",
-    description = "在联系人与群组详情页面显示微信 ID"
-)
+@HookItem(name = "显示微信 ID", categories = ["联系人与群组"], description = "在联系人与群组详情页面显示微信 ID")
 object ShowWxIdInContactDetails : SwitchHookItem(), IContactInfoProvider {
 
     private const val PREF_KEY = "wxid_display"

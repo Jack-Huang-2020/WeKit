@@ -20,7 +20,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.concurrent.CopyOnWriteArrayList
 
-@HookItem(path = "API/联系人页面扩展")
+@HookItem(name = "联系人页面扩展", categories = ["API"])
 object WeContactPrefsScreenApi : ApiHookItem() {
 
     interface IContactInfoProvider {

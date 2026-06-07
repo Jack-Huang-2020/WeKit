@@ -14,7 +14,7 @@ import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
-@HookItem(path = "API/朋友圈菜单增强扩展", description = "为朋友圈消息长按菜单提供添加菜单项功能")
+@HookItem(name = "朋友圈菜单增强扩展", categories = ["API"], description = "为朋友圈消息长按菜单提供添加菜单项功能")
 object WeMomentsContextMenuApi : ApiHookItem(), IResolvesDex {
 
     private val TAG = nameOf(WeMomentsContextMenuApi)

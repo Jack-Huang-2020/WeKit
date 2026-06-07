@@ -23,7 +23,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import org.json.JSONArray
 import org.json.JSONObject
 
-@HookItem(path = "红包与支付/修改转账显示余额", description = "伪装转账时显示的余额文字")
+@HookItem(name = "修改转账显示余额", categories = ["红包与支付"], description = "伪装转账时显示的余额文字")
 object ModifyTransferWalletBalanceDisplay : ClickableHookItem(), IWePacketInterceptor {
 
     private val TAG = nameOf(ModifyTransferWalletBalanceDisplay)

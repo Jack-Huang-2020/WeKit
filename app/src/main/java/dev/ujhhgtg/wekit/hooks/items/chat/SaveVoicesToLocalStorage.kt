@@ -28,10 +28,7 @@ import kotlin.io.path.div
 import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 
-@HookItem(
-    path = "聊天/语音保存到本地",
-    description = "在语音消息菜单添加保存按钮, 允许将语音文件保存到本地"
-)
+@HookItem(name = "语音保存到本地", categories = ["聊天"], description = "在语音消息菜单添加保存按钮, 允许将语音文件保存到本地")
 object SaveVoicesToLocalStorage : SwitchHookItem(), IResolvesDex,
     WeChatMessageContextMenuApi.IMenuItemsProvider {
 

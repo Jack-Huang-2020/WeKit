@@ -50,10 +50,7 @@ import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name
 
-@HookItem(
-    path = "调试/崩溃日志查看器",
-    description = "查看历史崩溃日志"
-)
+@HookItem(name = "崩溃日志查看器", categories = ["调试"], description = "查看历史崩溃日志")
 object CrashLogsViewer : ClickableHookItem() {
 
     private val TAG = nameOf(CrashLogsViewer)

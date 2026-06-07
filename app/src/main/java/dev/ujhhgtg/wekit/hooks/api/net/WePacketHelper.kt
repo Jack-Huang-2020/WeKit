@@ -31,7 +31,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.Proxy
 
-@HookItem(path = "API/网络数据包服务")
+@HookItem(name = "网络数据包服务", categories = ["API"])
 object WePacketHelper : ApiHookItem(), IResolvesDex {
 
     // 核心 Protobuf 类

@@ -51,7 +51,7 @@ object HookItemsLoader {
                 if (isBroken) {
                     // A partially-loaded item: delegates that loaded from cache are usable,
                     // but we cannot guarantee all dependencies are present, so skip activation.
-                    WeLogger.w(TAG, "skipping ${(hookItem as BaseHookItem).path} — incomplete cache, awaiting re-resolution")
+                    WeLogger.w(TAG, "skipping ${(hookItem as BaseHookItem).name} — incomplete cache, awaiting re-resolution")
                     return@forEach
                 }
 
@@ -78,7 +78,7 @@ object HookItemsLoader {
         val failedItems = mutableListOf<IResolvesDex>()
 
         for (item in items) {
-            val path = (item as? BaseHookItem)?.path ?: "unknown"
+            val path = (item as BaseHookItem).displayName
             try {
                 val cache = DexCacheManager.loadItemCache(item)
                 if (cache == null) {

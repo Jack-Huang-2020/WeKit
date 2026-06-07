@@ -7,7 +7,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
-@HookItem(path = "联系人与群组/显示隐藏朋友设置项", description = "阻止微信隐藏朋友设置; 部分设置项可能显示异常, 但不影响功能")
+@HookItem(name = "显示隐藏朋友设置项", categories = ["联系人与群组"], description = "阻止微信隐藏朋友设置; 部分设置项可能显示异常, 但不影响功能")
 object DisplayHiddenContactSettings : SwitchHookItem() {
 
     override fun onEnable() {

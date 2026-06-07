@@ -19,7 +19,7 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(path = "调试/启动微信内部 URL", description = "跳转微信 weixin:// URL")
+@HookItem(name = "启动微信内部 URL", categories = ["调试"], description = "跳转微信 weixin:// URL")
 object LaunchInternalUrls : ClickableHookItem(), IResolvesDex {
 
     override val noSwitchWidget = true

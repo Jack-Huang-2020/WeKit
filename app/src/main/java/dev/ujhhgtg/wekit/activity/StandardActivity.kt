@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import dev.ujhhgtg.wekit.BuildConfig
 
 class StandardActivity : ComponentActivity() {
 
@@ -69,7 +70,9 @@ class StandardActivity : ComponentActivity() {
 //            pendingOnPause = onPause
 //            pendingOnDestroy = onDestroy
             context.startActivity(
-                Intent(context, StandardActivity::class.java)
+                Intent(context, StandardActivity::class.java).apply {
+                    putExtra(BuildConfig.TAG, true)
+                }
             )
         }
     }
