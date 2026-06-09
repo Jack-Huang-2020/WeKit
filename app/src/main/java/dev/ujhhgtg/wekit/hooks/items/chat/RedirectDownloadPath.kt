@@ -33,6 +33,7 @@ object RedirectDownloadPath : ClickableHookItem(), IResolvesDex {
 
     private const val TAG = "RedirectDownloadPath"
     private const val KEY_SAVE_DIR = "redirect_download_path_save_dir"
+    private const val JAVA_LANG_STRING = "java.lang.String"
     private var saveDir by prefOption(KEY_SAVE_DIR, "")
 
     override fun onEnable() {
@@ -142,7 +143,7 @@ object RedirectDownloadPath : ClickableHookItem(), IResolvesDex {
                     )
                 }
 
-                paramTypes("long", "java.lang.String", "java.lang.String", "java.lang.String")
+                paramTypes("long", JAVA_LANG_STRING, JAVA_LANG_STRING, JAVA_LANG_STRING)
                 returnType(String::class.java)
             }
         }
@@ -158,15 +159,15 @@ object RedirectDownloadPath : ClickableHookItem(), IResolvesDex {
                 }
 
                 paramTypes(
-                    "java.lang.String",
+                    JAVA_LANG_STRING,
                     "long",
-                    "java.lang.String",
+                    JAVA_LANG_STRING,
                     "int",
-                    "java.lang.String",
-                    "java.lang.String",
+                    JAVA_LANG_STRING,
+                    JAVA_LANG_STRING,
                     "long",
                     "int",
-                    "java.lang.String",
+                    JAVA_LANG_STRING,
                     "int"
                 )
                 returnType(String::class.java)
