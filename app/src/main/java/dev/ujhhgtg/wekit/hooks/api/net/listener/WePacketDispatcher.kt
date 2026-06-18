@@ -6,7 +6,7 @@ import androidx.core.os.postDelayed
 import com.tencent.kinda.framework.module.impl.WXPCommReqResp
 import de.robv.android.xposed.XposedHelpers
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.hooks.api.net.WePacketManager
@@ -14,14 +14,13 @@ import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentHashMap
 
 @HookItem(name = "数据包拦截与篡改服务", categories = ["API"], description = "响应数据包拦截与篡改")
-object WePacketDispatcher : ApiHookItem(), IResolvesDex {
+object WePacketDispatcher : ApiHookItem(), IResolveDex {
 
     private val TAG = nameOf(WePacketDispatcher)
     private val classOnGYNetEnd by dexClass()
@@ -35,7 +34,7 @@ object WePacketDispatcher : ApiHookItem(), IResolvesDex {
                 val netSceneBaseClass = WePacketHelper.classNetSceneBase.clazz
                 val callbackInterface = classOnGYNetEnd.clazz
 
-                netSceneBaseClass.resolve().firstMethod { name = "dispatch" }.hookBefore {
+                netSceneBaseClass.reflekt().firstMethod { name = "dispatch" }.hookBefore {
                     val v0Var = args[1] ?: return@hookBefore
                     val originalCallback = args[2] ?: return@hookBefore
 
@@ -122,7 +121,7 @@ object WePacketDispatcher : ApiHookItem(), IResolvesDex {
 
                                         if (respWrapper != null) {
                                             val respPbObj = try {
-                                                respWrapper.asResolver().firstField { name = "a" }
+                                                respWrapper.reflekt().firstField { name = "a" }
                                                     .get()
                                             } catch (_: NoSuchFieldException) {
                                                 null
@@ -130,7 +129,7 @@ object WePacketDispatcher : ApiHookItem(), IResolvesDex {
 
                                             if (respPbObj != null) {
                                                 try {
-                                                    val originalRespBytes = respPbObj.asResolver()
+                                                    val originalRespBytes = respPbObj.reflekt()
                                                         .firstMethod { name = "toByteArray" }
                                                         .invoke() as ByteArray
                                                     WePacketManager.handleResponseTamper(

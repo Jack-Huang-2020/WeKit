@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -17,11 +17,11 @@ import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "修改显示余额", categories = ["红包与支付"], description = "伪装钱包余额文字")
-object ModifyWalletBalanceDisplay : ClickableHookItem(), IResolvesDex {
+object ModifyWalletBalanceDisplay : ClickableHookItem(), IResolveDex {
 
     private const val KEY_BALANCE = "fake_wallet_balance"
 
@@ -31,7 +31,7 @@ object ModifyWalletBalanceDisplay : ClickableHookItem(), IResolvesDex {
     override fun onEnable() {
         methodUpdateBalanceDisplay.hookAfter {
             val text = WePrefs.getStringOrDef(KEY_BALANCE, null) ?: return@hookAfter
-            val balanceView = thisObject.asResolver()
+            val balanceView = thisObject.reflekt()
                 .firstField { type = TextView::class }
                 .get()!! as TextView
             balanceView.text = text

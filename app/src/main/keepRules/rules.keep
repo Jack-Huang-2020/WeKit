@@ -1,5 +1,5 @@
 # App
--keepnames class * implements dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+-keepnames class * implements dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 
 # Attributes
 -keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault,LineNumberTable,SourceFile,*Annotation*

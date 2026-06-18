@@ -2,7 +2,7 @@ package dev.ujhhgtg.wekit.dexkit.cache
 
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.Preferences
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.WeLogger
@@ -56,7 +56,7 @@ object DexCacheManager {
      * 2. methodHash 匹配（检测代码变化）
      * 3. [item] 的每个委托 key 都有非空值
      */
-    fun isItemCacheValid(item: IResolvesDex): Boolean {
+    fun isItemCacheValid(item: IResolveDex): Boolean {
         if (item !is BaseHookItem) unreachable()
 
         val cacheFile = getCacheFile(item.name)
@@ -95,9 +95,9 @@ object DexCacheManager {
 
     /**
      * 将 [item] 所有委托的当前描述符持久化到缓存文件。
-     * 数据来自 [IResolvesDex.collectDescriptors]。
+     * 数据来自 [IResolveDex.collectDescriptors]。
      */
-    fun saveItemCache(item: IResolvesDex) {
+    fun saveItemCache(item: IResolveDex) {
         if (item !is BaseHookItem) {
             error("item is not BaseHookItem")
         }
@@ -121,9 +121,9 @@ object DexCacheManager {
 
     /**
      * 从缓存文件加载原始 Map（不包含元数据 key）。
-     * 由 [IResolvesDex.loadFromCache] 消费，后者负责逐委托分发。
+     * 由 [IResolveDex.loadFromCache] 消费，后者负责逐委托分发。
      */
-    fun loadItemCache(item: IResolvesDex): Map<String, Any>? {
+    fun loadItemCache(item: IResolveDex): Map<String, Any>? {
         if (item !is BaseHookItem) {
             error("item is not BaseHookItem")
         }
@@ -155,7 +155,7 @@ object DexCacheManager {
         WeLogger.i(TAG, "all cache cleared")
     }
 
-    fun getOutdatedItems(items: List<IResolvesDex>): List<IResolvesDex> =
+    fun getOutdatedItems(items: List<IResolveDex>): List<IResolveDex> =
         items.filter { !isItemCacheValid(it) }
 
     // ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ object DexCacheManager {
     /**
      * 获取 resolveDex 方法编译时生成的哈希，用于检测实现变化。
      */
-    private fun calculateMethodHash(item: IResolvesDex): String {
+    private fun calculateMethodHash(item: IResolveDex): String {
         val className = item.javaClass.name
         val hash = GeneratedMethodHashes.HASHES[className]
         if (hash.isNullOrBlank())

@@ -21,7 +21,7 @@ import android.os.PersistableBundle
 import android.os.TestLooperManager
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.highcapable.kavaref.extension.hasClass
+import dev.ujhhgtg.reflekt.utils.hasClass
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.constants.PackageNames
@@ -29,7 +29,7 @@ import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.Intent
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method

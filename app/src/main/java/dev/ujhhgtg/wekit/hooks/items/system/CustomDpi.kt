@@ -12,8 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import com.highcapable.kavaref.extension.toClass
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.utils.toClass
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -27,8 +27,8 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.reflection.BBool
 import dev.ujhhgtg.wekit.utils.reflection.BFloat
 import dev.ujhhgtg.wekit.utils.reflection.BInt
-import dev.ujhhgtg.wekit.utils.reflection.isStatic
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.utils.isStatic
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier as ReflectModifier
@@ -37,7 +37,7 @@ import java.lang.reflect.Modifier as ReflectModifier
     name = "DPI 修改", categories = ["界面美化", "系统与隐私"],
     description = "自定义微信屏幕密度"
 )
-object CustomDpi : ClickableHookItem(), IResolvesDex {
+object CustomDpi : ClickableHookItem(), IResolveDex {
 
     private val methodGetDisplayMetrics by dexMethod {
         matcher {

@@ -3,7 +3,7 @@ package dev.ujhhgtg.wekit.hooks.api.core
 import android.annotation.SuppressLint
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import java.lang.reflect.Method
 
 @HookItem(name = "Unsafe 服务", categories = ["API"], description = "提供调用 sun.misc.Unsafe 功能的能力")

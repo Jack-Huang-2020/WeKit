@@ -23,7 +23,7 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.formatEpoch
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import java.lang.reflect.Field
 
 
@@ -50,7 +50,7 @@ object DisplayMessageSendTime : ClickableHookItem(),
         val msgInfo = WeChatMessageViewApi.getMsgInfoFromParam(param)
         val text = formatEpoch(msgInfo.createTime, pattern)
 
-        val time = tag.asResolver()
+        val time = tag.reflekt()
             .firstField {
                 name = "timeTV"
                 superclass()
@@ -100,7 +100,7 @@ object DisplayMessageSendTime : ClickableHookItem(),
 
                 // Resolve avatar to check if it's currently hidden
                 if (!::avatarField.isInitialized) {
-                    avatarField = tag.asResolver()
+                    avatarField = tag.reflekt()
                         .firstField { name = "avatarIV"; superclass() }.self
                 }
                 val avatar = avatarField.get(tag) as View?

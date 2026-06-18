@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.collections.LruCache
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import java.lang.reflect.InvocationTargetException
 
 @HookItem(name = "自动语音转文字", categories = ["聊天"], description = "自动将语音消息转为文字")
@@ -39,13 +39,13 @@ object AutoSpeechToText : SwitchHookItem(),
         }
 
         val chattingContext = WeChatMessageViewApi.getChattingContextFromParam(param)
-        val apiMan = chattingContext.asResolver()
+        val apiMan = chattingContext.reflekt()
             .firstField {
                 type = WeServiceApi.classApiManager
             }
             .get()!!
         val api = WeServiceApi.getApiByClass(apiMan, WeMessageApi.classTransformChattingComponent.clazz)
-        val chatViewItem = api.asResolver()
+        val chatViewItem = api.reflekt()
             .firstMethod {
                 parameters(Long::class)
                 returnType { clazz ->
@@ -60,7 +60,7 @@ object AutoSpeechToText : SwitchHookItem(),
 
         if (WeMessageApi.methodGetIsTransformed.method.invoke(msgInfo.instance) as Boolean) return
         try {
-            api.asResolver()
+            api.reflekt()
                 .firstMethod {
                     parameters(
                         WeMessageApi.classMsgInfo.clazz,

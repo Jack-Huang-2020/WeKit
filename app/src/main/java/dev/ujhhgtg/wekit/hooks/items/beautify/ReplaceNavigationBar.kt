@@ -47,7 +47,7 @@ import com.composables.icons.materialsymbols.outlinedfilled.Contacts
 import com.composables.icons.materialsymbols.outlinedfilled.Explore
 import com.composables.icons.materialsymbols.outlinedfilled.Home
 import com.composables.icons.materialsymbols.outlinedfilled.Person
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.ui.WeMainActivityBeautifyApi
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -63,12 +63,12 @@ import dev.ujhhgtg.wekit.ui.utils.AppTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 @HookItem(name = "美化首页底部导航栏", categories = ["界面美化"], description = "将首页底部导航栏替换为 Material Design 或 Backdrop 风格")
-object ReplaceNavigationBar : ClickableHookItem(), IResolvesDex {
+object ReplaceNavigationBar : ClickableHookItem(), IResolveDex {
 
     private data class NavItem(
         val outlined: ImageVector,
@@ -88,22 +88,22 @@ object ReplaceNavigationBar : ClickableHookItem(), IResolvesDex {
 
     override fun onEnable() {
         WeMainActivityBeautifyApi.methodDoOnCreate.hookAfter {
-            val activity = thisObject.asResolver()
+            val activity = thisObject.reflekt()
                 .firstField {
                     type = "com.tencent.mm.ui.MMFragmentActivity"
                 }
                 .get()!! as Activity
-            val viewPager = thisObject.asResolver()
+            val viewPager = thisObject.reflekt()
                 .firstField {
                     name = "mViewPager"
                 }
                 .get()!! as ViewGroup
-            val tabsAdapter = thisObject.asResolver()
+            val tabsAdapter = thisObject.reflekt()
                 .firstField {
                     name = "mTabsAdapter"
                 }
                 .get()!!
-            val methodOnTabClick = tabsAdapter.asResolver()
+            val methodOnTabClick = tabsAdapter.reflekt()
                 .firstMethod {
                     name = "onTabClick"
                 }.self
@@ -119,7 +119,7 @@ object ReplaceNavigationBar : ClickableHookItem(), IResolvesDex {
             val selectedPageIndexState = mutableIntStateOf(0)
             val scrollOffsetState = mutableFloatStateOf(0f)
 
-            tabsAdapter.asResolver()
+            tabsAdapter.reflekt()
                 .firstMethod { name = "onPageScrolled" }
                 .hookBefore {
                     val position = args[0] as Int

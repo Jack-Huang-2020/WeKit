@@ -3,16 +3,15 @@ package dev.ujhhgtg.wekit.hooks.items.system
 import android.app.Activity
 import android.content.Intent
 import com.tencent.mm.plugin.webview.ui.tools.WebViewUI
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "强制启用 WebView 菜单", categories = ["系统与隐私"], description = "强制显示 WebView 页面右上角菜单按钮")
-object EnableWebViewFeatures : SwitchHookItem(), IResolvesDex {
+object EnableWebViewFeatures : SwitchHookItem(), IResolveDex {
 
     private val TRUE_INTENT_KEYS =
         setOf("show_feedback", "KRightBtn", "KShowFixToolsBtn", "key_enable_fts_quick")
@@ -20,7 +19,7 @@ object EnableWebViewFeatures : SwitchHookItem(), IResolvesDex {
     private val methodInitWebViewFeatures by dexMethod()
 
     override fun onEnable() {
-        WebViewUI::class.resolve()
+        WebViewUI::class.reflekt()
             .firstMethod {
                 name = "showOptionMenu"
             }.hookBefore {
@@ -35,7 +34,7 @@ object EnableWebViewFeatures : SwitchHookItem(), IResolvesDex {
             }
 
         methodInitWebViewFeatures.hookBefore {
-            val intent = thisObject.asResolver().firstMethod {
+            val intent = thisObject.reflekt().firstMethod {
                 name = "getIntent"
                 superclass()
             }.invoke() as Intent

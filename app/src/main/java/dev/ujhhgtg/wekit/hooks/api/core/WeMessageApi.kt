@@ -2,14 +2,18 @@ package dev.ujhhgtg.wekit.hooks.api.core
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
-import com.highcapable.kavaref.condition.type.Modifiers
-import com.highcapable.kavaref.condition.type.VagueType
-import com.highcapable.kavaref.extension.createInstance
 import com.tencent.mm.opensdk.modelmsg.WXFileObject
 import com.tencent.mm.opensdk.modelmsg.WXMediaMessage
 import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.spec.VagueType
+import dev.ujhhgtg.reflekt.utils.Modifiers
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.isBuiltin
+import dev.ujhhgtg.reflekt.utils.isStatic
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import dev.ujhhgtg.wekit.constants.WeChatVersions
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
@@ -22,12 +26,8 @@ import dev.ujhhgtg.wekit.utils.collections.emptyHashSet
 import dev.ujhhgtg.wekit.utils.reflection.BBool
 import dev.ujhhgtg.wekit.utils.reflection.BInt
 import dev.ujhhgtg.wekit.utils.reflection.BString
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.bool
 import dev.ujhhgtg.wekit.utils.reflection.int
-import dev.ujhhgtg.wekit.utils.reflection.isBuiltin
-import dev.ujhhgtg.wekit.utils.reflection.isStatic
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
 import dev.ujhhgtg.wekit.utils.serialization.JsonToXmlConverter
 import dev.ujhhgtg.wekit.utils.serialization.XmlUtils.extractXmlAttr
 import dev.ujhhgtg.wekit.utils.serialization.XmlUtils.extractXmlTag
@@ -47,7 +47,7 @@ import kotlin.random.Random
 
 @SuppressLint("DiscouragedApi")
 @HookItem(name = "消息发送服务", categories = ["API"], description = "提供文本、图片、文件、语音消息发送能力")
-object WeMessageApi : ApiHookItem(), IResolvesDex {
+object WeMessageApi : ApiHookItem(), IResolveDex {
 
     // -------------------------------------------------------------------------------------
     // 基础消息类
@@ -502,7 +502,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
 
     fun convertMsgInfoFromContentValues(contentValues: ContentValues, boolValue: Boolean): Any {
         val msgInfo = classMsgInfo.clazz.createInstance()
-        msgInfo.asResolver().firstMethod {
+        msgInfo.reflekt().firstMethod {
             name = "convertFrom"
             parameters(ContentValues::class, Boolean::class)
             superclass()
@@ -531,7 +531,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
         // -----------------------------------------------------------------------------
         // 图片组件初始化
         // -----------------------------------------------------------------------------
-        taskConstructor = classImageTask.clazz.asResolver()
+        taskConstructor = classImageTask.clazz.reflekt()
             .firstConstructor { parameterCount = 5 }
             .self
 
@@ -542,60 +542,60 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
         // -----------------------------------------------------------------------------
 
         // VFS
-        classVfs.asResolver().apply {
+        classVfs.reflekt().apply {
             vfsReadMethod = firstMethod {
-                modifiers(Modifiers.STATIC)
+                modifiers { it.contains(Modifiers.STATIC) }
                 parameters(String::class)
                 returnType = InputStream::class
             }.self
 
             vfsCopyMethod = firstMethod {
-                modifiers(Modifiers.STATIC)
+                modifiers { it.contains(Modifiers.STATIC) }
                 parameters(String::class, Boolean::class)
                 returnType = OutputStream::class
             }.self
 
             vfsExistsMethod = firstMethod {
-                modifiers(Modifiers.STATIC)
+                modifiers { it.contains(Modifiers.STATIC) }
                 parameters(String::class)
                 returnType = Boolean::class
             }.self
         }
 
-        pathGenMethod = classPathUtil.asResolver().firstMethod {
-            modifiers(Modifiers.STATIC)
+        pathGenMethod = classPathUtil.reflekt().firstMethod {
+            modifiers { it.contains(Modifiers.STATIC) }
             parameters(VagueType, VagueType, VagueType, VagueType, Int::class)
             returnType = String::class
         }.self
 
         // Voice Components
-        voiceNameGenMethod = classVoiceNameGen.asResolver().firstMethod {
-            modifiers(Modifiers.STATIC)
+        voiceNameGenMethod = classVoiceNameGen.reflekt().firstMethod {
+            modifiers { it.contains(Modifiers.STATIC) }
             parameters(String::class, VagueType)
             returnType = String::class
         }.self
 
-        classVoiceParams.asResolver().apply {
-            val intFields = field { type = Int::class }
+        classVoiceParams.reflekt().apply {
+            val intFields = fields { type = Int::class }
             voiceDurationField = intFields[0].self
             voiceOffsetField = intFields[1].self
         }
 
-        voiceTaskConstructor = classVoiceTask.asResolver()
+        voiceTaskConstructor = classVoiceTask.reflekt()
             .firstConstructor {
                 parameters(classVoiceParams.clazz)
             }.self
 
-        getServiceMethod = classServiceManager.asResolver()
+        getServiceMethod = classServiceManager.reflekt()
             .firstMethod {
-                modifiers(Modifiers.STATIC)
+                modifiers { it.contains(Modifiers.STATIC) }
                 parameters(Class::class)
             }.self
 
-        getSelfAliasMethod = classConfigLogic.asResolver()
+        getSelfAliasMethod = classConfigLogic.reflekt()
             .firstMethod {
                 name { it.length <= 2 }
-                modifiers(Modifiers.STATIC)
+                modifiers { it.contains(Modifiers.STATIC) }
                 parameterCount = 0
                 returnType = String::class
             }.self
@@ -668,7 +668,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
             val serviceObj = getServiceMethod?.invoke(null, imageServiceApiClass) ?: return false
 
             val paramsObj = crossParamsClass.createInstance()
-            paramsObj.asResolver()
+            paramsObj.reflekt()
                 .firstField { type = int }
                 .set(4)
 
@@ -679,7 +679,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
                 toUser,
                 paramsObj
             )
-            taskObj.asResolver()
+            taskObj.reflekt()
                 .lastField { type = String::class }
                 .set("media_generate_send_img")
 
@@ -703,7 +703,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
         ) {
             val sendImageMethod = methodImgUploadFeatureServiceSendImage.method
             val paramsClass = sendImageMethod.parameterTypes[0]
-            val crossParamsClass = paramsClass.asResolver()
+            val crossParamsClass = paramsClass.reflekt()
                 .firstField { type { !it.isBuiltin } }.self.type
             val crossParams = crossParamsClass.createInstance()
 
@@ -711,7 +711,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
                 val appInfoClass = methodAppInfoSetAppId.method.declaringClass
                 val appInfo = appInfoClass.createInstance()
                 methodAppInfoSetAppId.method.invoke(appInfo, appMsgAppId)
-                crossParams.asResolver()
+                crossParams.reflekt()
                     .firstField {
                         type = appInfoClass
                     }.set(appInfo)
@@ -823,7 +823,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
         if (succeeded) return true
 
         succeeded = runCatching {
-            val partialPath = classVoiceLogic.asResolver()
+            val partialPath = classVoiceLogic.reflekt()
                 .firstMethod {
                     parameters(BString, BString)
                     returnType = BString
@@ -838,7 +838,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
 
             Files.copy(Path(path), Path(fullPath), StandardCopyOption.REPLACE_EXISTING)
 
-            val target = classVoiceLogic.clazz.asResolver()
+            val target = classVoiceLogic.clazz.reflekt()
                 .firstMethod {
                     parameters {
                         it[0] == BString && it[1] == BInt && it[2] == BInt
@@ -851,7 +851,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
                 target.invoke(null, fullPath, durationMs, 0)
             }
 
-            val service = classSceneVoiceService.clazz.asResolver()
+            val service = classSceneVoiceService.clazz.reflekt()
                 .firstMethod {
                     returnType = methodStartRecvAndSend.method.declaringClass
                     modifiers { it.contains(Modifiers.STATIC) }
@@ -911,8 +911,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
         }
 
     fun getMsgInfoFromTag(tag: Any): Any {
-        val mGetMsgInfo = tag.asResolver()
-            .optional()
+        val mGetMsgInfo = tag.reflekt()
             .firstMethodOrNull {
                 returnType = classMsgInfo.clazz
                 parameterCount(0)
@@ -922,7 +921,7 @@ object WeMessageApi : ApiHookItem(), IResolvesDex {
         return if (mGetMsgInfo != null) {
             mGetMsgInfo.invoke()!!
         } else {
-            tag.asResolver()
+            tag.reflekt()
                 .firstField {
                     type = classMsgInfo.clazz
                     superclass()

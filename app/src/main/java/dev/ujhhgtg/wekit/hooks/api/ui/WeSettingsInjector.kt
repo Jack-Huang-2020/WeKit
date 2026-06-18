@@ -7,9 +7,9 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import com.android.dx.stock.ProxyBuilder
-import com.highcapable.kavaref.extension.createInstance
-import com.highcapable.kavaref.extension.toClass
-import com.highcapable.kavaref.extension.toClassOrNull
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.toClass
+import dev.ujhhgtg.reflekt.utils.toClassOrNull
 import com.tencent.mm.plugin.setting.ui.setting_new.MainSettingsUI
 import com.tencent.mm.plugin.setting.ui.setting_new.base.BaseSettingPrefUI
 import com.tencent.mm.plugin.setting.ui.setting_new.base.BaseSettingUI
@@ -25,7 +25,7 @@ import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
@@ -45,16 +45,15 @@ import dev.ujhhgtg.wekit.utils.reflection.BInt
 import dev.ujhhgtg.wekit.utils.reflection.BLong
 import dev.ujhhgtg.wekit.utils.reflection.BShort
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.reflection.bool
 import dev.ujhhgtg.wekit.utils.reflection.byte
 import dev.ujhhgtg.wekit.utils.reflection.char
 import dev.ujhhgtg.wekit.utils.reflection.double
 import dev.ujhhgtg.wekit.utils.reflection.float
 import dev.ujhhgtg.wekit.utils.reflection.int
-import dev.ujhhgtg.wekit.utils.reflection.isAbstract
+import dev.ujhhgtg.reflekt.utils.isAbstract
 import dev.ujhhgtg.wekit.utils.reflection.long
-import dev.ujhhgtg.wekit.utils.reflection.resolve
 import dev.ujhhgtg.wekit.utils.reflection.short
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.enums.StringMatchType
@@ -63,7 +62,7 @@ import java.lang.reflect.Modifier
 import kotlin.io.path.div
 
 @HookItem(name = "设置模块入口", categories = ["API"])
-object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuApi.IMenuItemsProvider {
+object WeSettingsInjector : ApiHookItem(), IResolveDex, WeHomeScreenPopupMenuApi.IMenuItemsProvider {
 
     private val methodSetKey by dexMethod()
     private val methodSetTitle by dexMethod()
@@ -221,7 +220,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
             return
         }
 
-        clsSettingsUi.resolve().firstMethod {
+        clsSettingsUi.reflekt().firstMethod {
             name = "initView"
             parameterCount = 0
         }.hookAfter {
@@ -243,7 +242,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
             }
         }
 
-        clsSettingsUi.resolve().firstMethod { name = "onPreferenceTreeClick" }
+        clsSettingsUi.reflekt().firstMethod { name = "onPreferenceTreeClick" }
             .hookBefore {
                 if (args.size < 2) return@hookBefore
                 val preference = args[1] ?: return@hookBefore
@@ -265,13 +264,13 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
 //            "com.tencent.mm.plugin.setting.ui.setting_new.base.BaseSettingPrefUI"
 //                .toClassOrNull() ?: return
 //
-//        newSettingsCls.asResolver().firstMethod { name = "onCreate" }.hookAfter {
+//        newSettingsCls.reflekt().firstMethod { name = "onCreate" }.hookAfter {
 //            if (thisObject.javaClass.name
 //                != "com.tencent.mm.plugin.setting.ui.setting_new.MainSettingsUI"
 //            ) return@hookAfter
 //
 //            val activity = thisObject as Activity
-//            activity.asResolver()
+//            activity.reflekt()
 //                .firstMethod {
 //                    name = "addTextOptionMenu"
 //                    parameters(
@@ -363,7 +362,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
                 .buildProxyClass()
                 .also {
                     // if generating a proxy class with buildProxyClass(), instances do not automatically have a handler set
-                    it.asResolver().firstConstructor().hookAfter {
+                    it.reflekt().firstConstructor().hookAfter {
                         ProxyBuilder.setInvocationHandler(thisObject, handler)
                     }
                 }
@@ -380,7 +379,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
             }
 
         // create dependency chain
-        CHILD_SETTING_ITEM_CLASS.resolve()
+        CHILD_SETTING_ITEM_CLASS.reflekt()
             .firstMethod {
                 returnType = classSettingLocation.clazz
             }
@@ -392,7 +391,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
             }
 
         // inject into all SettingItem::class map in order to be discovered
-        classSettingItemClassesProvider.asResolver().firstMethod()
+        classSettingItemClassesProvider.reflekt().firstMethod()
             .hookAfter {
                 val map = result as? Map<*, *>? ?: return@hookAfter
                 val originalSet = map.values.first() as LinkedHashSet<*>
@@ -400,13 +399,13 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
             }
 
         // inject into page
-        BaseSettingPrefUI::class.resolve()
+        BaseSettingPrefUI::class.reflekt()
             .firstMethod { name = "superImportUIComponents" }
             .hookAfter {
                 if (thisObject !is MainSettingsUI) return@hookAfter
 
                 // a simple way to inject string resource
-                contextGetStringUnhook = Context::class.resolve()
+                contextGetStringUnhook = Context::class.reflekt()
                     .firstMethod {
                         name = "getString"
                         parameters(Int::class)
@@ -422,7 +421,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
                 settingItemClasses.add(customSettingItemClass)
             }
 
-        BaseSettingUI::class.asResolver()
+        BaseSettingUI::class.reflekt()
             .firstMethod { name = "onDestroy" }
             .hookAfter {
                 if (thisObject !is MainSettingsUI) return@hookAfter
@@ -459,7 +458,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
 //    }
 
     private fun hookLauncherUi() {
-        LauncherUI::class.resolve().apply {
+        LauncherUI::class.reflekt().apply {
             firstMethod { name = "onCreate" }
                 .hookBefore {
                     val activity = thisObject as Activity

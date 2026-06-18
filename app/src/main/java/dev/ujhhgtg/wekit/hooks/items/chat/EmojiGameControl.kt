@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -38,13 +38,13 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.invokeOriginal
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.enums.MatchType
 import kotlin.random.Random
 
 @HookItem(name = "表情游戏控制", categories = ["聊天"], description = "自定义猜拳和骰子的结果")
-object EmojiGameControl : SwitchHookItem(), IResolvesDex {
+object EmojiGameControl : SwitchHookItem(), IResolveDex {
 
     private const val MD5_MORRA = "9bd1281af3a31710a45b84d736363691"
     private const val MD5_DICE = "08f223fa83f1ca34e143d1e580252c7c"

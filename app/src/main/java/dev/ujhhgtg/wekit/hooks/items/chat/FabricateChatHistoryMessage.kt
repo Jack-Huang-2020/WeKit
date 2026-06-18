@@ -1,5 +1,7 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +37,7 @@ import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Add
 import com.composables.icons.materialsymbols.outlined.Delete
 import com.composables.icons.materialsymbols.outlined.Person_search
+import com.composables.icons.materialsymbols.outlined.Schedule
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
@@ -58,6 +62,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -91,7 +96,7 @@ private fun ChatRecordXmlGeneratorDialog(
 
     val rows = remember {
         mutableStateListOf(
-            MessageRowState()
+            MessageRowState(initialTimeMillis = System.currentTimeMillis())
         )
     }
 
@@ -101,7 +106,7 @@ private fun ChatRecordXmlGeneratorDialog(
     val canGenerate by remember(rows, contacts) {
         derivedStateOf {
             rows.isNotEmpty() &&
-                    rows.all { it.senderWxId != null && it.senderWxId!!.isNotBlank() && it.text.isNotBlank() } &&
+                    rows.all { it.senderWxId != null && it.senderWxId!!.isNotBlank() && it.text.isNotBlank() && !it.isTimeError } &&
                     contactsByWxId.isNotEmpty()
         }
     }
@@ -110,7 +115,7 @@ private fun ChatRecordXmlGeneratorDialog(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(),
-        title = { Text("伪造聊天记录") },
+        title = { Text("伪造聊天记录消息") },
         text = {
             Column(
                 modifier = Modifier
@@ -127,12 +132,40 @@ private fun ChatRecordXmlGeneratorDialog(
 
                 Spacer(Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = outerDesc,
-                    onValueChange = { outerDesc = it },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("描述") }
-                )
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = outerDesc,
+                        onValueChange = { outerDesc = it },
+                        modifier = Modifier.weight(1f),
+                        label = { Text("描述") }
+                    )
+
+                    Spacer(Modifier.width(8.dp))
+
+                    TextButton(
+                        onClick = {
+                            outerDesc = buildString {
+                                val takeCount = minOf(rows.size, 5)
+                                for (i in 0 until takeCount) {
+                                    val row = rows[i]
+                                    val nickname = contactsByWxId[row.senderWxId]?.nickname ?: "未知"
+                                    append("$nickname: ${row.text}")
+                                    if (i < takeCount - 1) {
+                                        append("\n")
+                                    }
+                                }
+                                if (rows.size > 5) {
+                                    append("...")
+                                }
+                            }
+                        }
+                    ) {
+                        Text("生成")
+                    }
+                }
 
                 Spacer(Modifier.height(12.dp))
 
@@ -163,13 +196,26 @@ private fun ChatRecordXmlGeneratorDialog(
                             if (dataItems.isEmpty()) {
                                 error("未找到消息条目")
                             }
+
+                            val timeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                             val newRows = dataItems.mapNotNull { item ->
                                 val text = item["datadesc"]?.jsonPrimitive?.contentOrNull?.trim()
                                     ?: return@mapNotNull null
                                 val sourceName = item["sourcename"]?.jsonPrimitive?.contentOrNull
                                     ?: return@mapNotNull null
                                 val contact = contacts.firstOrNull { it.nickname == sourceName }
-                                MessageRowState(senderWxId = contact?.wxId, text = text)
+
+                                // Attempt to extract and parse the existing source time
+                                val sourceTimeStr = item["sourcetime"]?.jsonPrimitive?.contentOrNull?.replace("&#x20;", " ")
+                                val parsedTimeMillis = sourceTimeStr?.let {
+                                    runCatching { timeFormat.parse(it)?.time }.getOrNull()
+                                } ?: System.currentTimeMillis()
+
+                                MessageRowState(
+                                    senderWxId = contact?.wxId,
+                                    text = text,
+                                    initialTimeMillis = parsedTimeMillis
+                                )
                             }
                             if (newRows.isEmpty()) {
                                 error("未能解析出有效消息")
@@ -180,7 +226,7 @@ private fun ChatRecordXmlGeneratorDialog(
                             rows.addAll(newRows)
                             showToast(context, "已从剪贴板加载 ${newRows.size} 条消息")
                         }.onFailure {
-                            showToast(context, "解析失败：${it.message}")
+                            showToast(context, "解析失败: ${it.message}")
                             WeLogger.e(nameOf(FabricateChatHistoryMessage), "failed to parse messages from clipboard", it)
                         }
                     },
@@ -202,7 +248,15 @@ private fun ChatRecordXmlGeneratorDialog(
                     )
 
                     IconButton(
-                        onClick = { rows.add(MessageRowState()) }
+                        onClick = {
+                            // Automatically offset new items progressively by 2 seconds
+                            val nextTime = if (rows.isNotEmpty()) {
+                                (rows.last().parsedTimeMillis ?: System.currentTimeMillis()) + 2000L
+                            } else {
+                                System.currentTimeMillis()
+                            }
+                            rows.add(MessageRowState(initialTimeMillis = nextTime))
+                        }
                     ) {
                         Icon(MaterialSymbols.Outlined.Add, contentDescription = "Add message")
                     }
@@ -229,7 +283,11 @@ private fun ChatRecordXmlGeneratorDialog(
                             }
                         },
                         onRemove = {
-                            if (rows.size > 1) rows.removeAt(index)
+                            if (rows.size > 1) {
+                                rows.removeAt(index)
+                            } else {
+                                showToast(context, "无法删除最后一条消息!")
+                            }
                         }
                     )
 
@@ -290,6 +348,7 @@ private fun MessageRowEditor(
     onPickSender: () -> Unit,
     onRemove: () -> Unit
 ) {
+    val context = LocalContext.current
     val selectedContact = remember(row.senderWxId, contactsByWxId) {
         row.senderWxId?.let { contactsByWxId[it] }
     }
@@ -304,7 +363,7 @@ private fun MessageRowEditor(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = selectedContact?.nickname?.takeIf { it.isNotBlank() } ?: "选择发送者 →",
+                        text = selectedContact?.displayName ?: "选择发送者 →",
                         style = MaterialTheme.typography.titleSmall
                     )
                     if (selectedContact != null) {
@@ -335,31 +394,105 @@ private fun MessageRowEditor(
                 label = { Text("消息内容") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default)
             )
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = row.timeText,
+                onValueChange = { row.timeText = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("发送时间 (yyyy-MM-dd HH:mm:ss)") },
+                isError = row.isTimeError,
+                supportingText = {
+                    if (row.isTimeError) {
+                        Text("时间格式不正确")
+                    }
+                },
+                trailingIcon = {
+                    IconButton(
+                        onClick = {
+                            showNativeDateTimePicker(context, row.parsedTimeMillis ?: System.currentTimeMillis()) { selectedMillis ->
+                                val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                row.timeText = formatter.format(Date(selectedMillis))
+                            }
+                        }
+                    ) {
+                        Icon(MaterialSymbols.Outlined.Schedule, contentDescription = "Pick Date Time")
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default)
+            )
         }
     }
 }
 
-// ------------------------------------------------------------
-// State
-// ------------------------------------------------------------
+private fun showNativeDateTimePicker(
+    context: Context,
+    initialMillis: Long,
+    onDateTimeSelected: (Long) -> Unit
+) {
+    val calendar = Calendar.getInstance().apply { timeInMillis = initialMillis }
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            calendar.set(Calendar.YEAR, year)
+            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+            TimePickerDialog(
+                context,
+                { _, hourOfDay, minute ->
+                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                    calendar.set(Calendar.MINUTE, minute)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                    onDateTimeSelected(calendar.timeInMillis)
+                },
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                true
+            ).show()
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+    datePickerDialog.show()
+}
 
 @Stable
 private class MessageRowState(
     senderWxId: String? = null,
-    text: String = ""
+    text: String = "",
+    initialTimeMillis: Long = System.currentTimeMillis()
 ) {
     var senderWxId by mutableStateOf(senderWxId)
     var text by mutableStateOf(text)
 
+    private val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+
+    var timeText: String by mutableStateOf(formatter.format(Date(initialTimeMillis)))
+
+    val parsedTimeMillis: Long? by derivedStateOf {
+        runCatching { formatter.parse(timeText)?.time }.getOrNull()
+    }
+
+    val isTimeError: Boolean by derivedStateOf {
+        parsedTimeMillis == null
+    }
+
     fun toSnapshot() = MessageRowSnapshot(
         senderWxId = senderWxId,
-        text = text
+        text = text,
+        timestampMillis = parsedTimeMillis ?: System.currentTimeMillis()
     )
 }
 
 private data class MessageRowSnapshot(
     val senderWxId: String?,
-    val text: String
+    val text: String,
+    val timestampMillis: Long
 )
 
 // ------------------------------------------------------------
@@ -370,17 +503,10 @@ private fun buildWeChatRecordXml(
     outerTitle: String,
     outerDesc: String,
     rows: List<MessageRowSnapshot>,
-    contacts: List<WeContact>,
-    baseTimeMillis: Long = System.currentTimeMillis()
+    contacts: List<WeContact>
 ): String {
-    val nowSeconds = baseTimeMillis / 1000L
     val timeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
         timeZone = TimeZone.getDefault()
-    }
-
-    fun timeStringAt(index: Int): String {
-        val t = Date(baseTimeMillis + index * 2000L)
-        return timeFormat.format(t).replace(" ", "&#x20;")
     }
 
     val innerTitle = xmlEscape(outerTitle)
@@ -400,10 +526,11 @@ private fun buildWeChatRecordXml(
         rows.forEachIndexed { index, row ->
             val contact = row.senderWxId?.let { wxId -> contacts.firstOrNull { it.wxId == wxId } }
             if (contact != null) {
-                val sourceName = contact.nickname.ifBlank { contact.displayName }
+                val sourceName = contact.nickname
                 val sourceHeadUrl = contact.avatarUrl
-                val sourcetime = timeStringAt(index)
-                val srcMsgCreateTime = nowSeconds + index * 2L
+
+                val sourcetime = timeFormat.format(Date(row.timestampMillis)).replace(" ", "&#x20;")
+                val srcMsgCreateTime = row.timestampMillis / 1000L
                 val fromNewMsgId = generateFakeMsgId(index)
 
                 append("<dataitem datatype=\"1\" dataid=\"\">")
@@ -449,5 +576,5 @@ private fun xmlEscape(text: String): String {
 }
 
 private fun xmlEscapeNewLines(text: String): String {
-    return xmlEscape(text).replace("\n", "&#x0A;")
+    return xmlEscape(text).replace("\n", "&#x0A;").replace(" ", "&#x20;")
 }

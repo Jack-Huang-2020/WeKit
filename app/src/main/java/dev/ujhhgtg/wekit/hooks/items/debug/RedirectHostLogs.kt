@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.highcapable.kavaref.condition.type.Modifiers
+import dev.ujhhgtg.reflekt.utils.Modifiers
 import com.tencent.mars.xlog.Log
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -22,7 +22,7 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 @HookItem(name = "重定向微信日志", categories = ["调试"], description = "将微信内部日志打印至模块日志")
 object RedirectHostLogs : ClickableHookItem() {
@@ -31,12 +31,12 @@ object RedirectHostLogs : ClickableHookItem() {
     private const val KEY_PREFIX = "redirect_"
 
     override fun onEnable() {
-        Log::class.resolve().apply {
+        Log::class.reflekt().apply {
             if (getBoolOrFalse("${KEY_PREFIX}v"))
                 firstMethod {
                     name = "v"
                     parameterCount = 3
-                    modifiers(Modifiers.STATIC)
+                    modifiers { it.contains(Modifiers.STATIC) }
                 }.hookBefore {
                     runCatching {
                         val tag = args[0] as String
@@ -50,7 +50,7 @@ object RedirectHostLogs : ClickableHookItem() {
                 firstMethod {
                     name = "d"
                     parameterCount = 3
-                    modifiers(Modifiers.STATIC)
+                    modifiers { it.contains(Modifiers.STATIC) }
                 }.hookBefore {
                     runCatching {
                         val tag = args[0] as String
@@ -64,7 +64,7 @@ object RedirectHostLogs : ClickableHookItem() {
                 firstMethod {
                     name = "i"
                     parameterCount = 3
-                    modifiers(Modifiers.STATIC)
+                    modifiers { it.contains(Modifiers.STATIC) }
                 }.hookBefore {
                     runCatching {
                         val tag = args[0] as String
@@ -78,7 +78,7 @@ object RedirectHostLogs : ClickableHookItem() {
                 firstMethod {
                     name = "w"
                     parameterCount = 3
-                    modifiers(Modifiers.STATIC)
+                    modifiers { it.contains(Modifiers.STATIC) }
                 }.hookBefore {
                     runCatching {
                         val tag = args[0] as String
@@ -92,7 +92,7 @@ object RedirectHostLogs : ClickableHookItem() {
                 firstMethod {
                     name = "e"
                     parameterCount = 3
-                    modifiers(Modifiers.STATIC)
+                    modifiers { it.contains(Modifiers.STATIC) }
                 }.hookBefore {
                     runCatching {
                         val tag = args[0] as String

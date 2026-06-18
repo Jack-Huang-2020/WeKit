@@ -1,18 +1,18 @@
 package dev.ujhhgtg.wekit.hooks.api.core
 
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "对话服务", categories = ["API"], description = "提供对话管理能力")
-object WeConversationApi : ApiHookItem(), IResolvesDex {
+object WeConversationApi : ApiHookItem(), IResolveDex {
 
     private val TAG = nameOf(WeConversationApi)
     private val classConversationStorage by dexClass()
@@ -25,7 +25,7 @@ object WeConversationApi : ApiHookItem(), IResolvesDex {
     private val methodSetNoDnd by dexMethod()
 
     val conversationStorage by lazy {
-        WeServiceApi.storageFeatureService.asResolver()
+        WeServiceApi.storageFeatureService.reflekt()
             .firstMethod {
                 returnType = classConversationStorage.clazz
             }
@@ -33,7 +33,7 @@ object WeConversationApi : ApiHookItem(), IResolvesDex {
     }
 
     val chatroomStorage by lazy {
-        WeServiceApi.chatroomService.asResolver()
+        WeServiceApi.chatroomService.reflekt()
             .firstMethod {
                 returnType = methodChatroomStorageGetMemberCount.method.declaringClass
             }
@@ -43,7 +43,7 @@ object WeConversationApi : ApiHookItem(), IResolvesDex {
     // this is NOT group 'member'
     // this is the group itself
     fun getGroup(groupId: String): Any {
-        return chatroomStorage.asResolver()
+        return chatroomStorage.reflekt()
             .firstMethod {
                 parameters(String::class)
                 returnType = classChatroomMember.clazz

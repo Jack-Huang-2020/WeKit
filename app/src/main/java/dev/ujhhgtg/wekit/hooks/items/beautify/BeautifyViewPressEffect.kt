@@ -6,13 +6,13 @@ import android.graphics.drawable.RippleDrawable
 import android.view.View
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 @HookItem(name = "美化组件按下效果", categories = ["界面美化"], description = "将 View 的背景替换为 RippleDrawable (没写完)")
 object BeautifyViewPressEffect : SwitchHookItem() {
 
     override fun onEnable() {
-        View::class.resolve()
+        View::class.reflekt()
             .firstMethod {
                 name = "setBackgroundDrawable"
                 parameters(Drawable::class)

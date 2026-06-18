@@ -16,7 +16,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.invokeOriginal
 import dev.ujhhgtg.wekit.utils.reflection.int
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 object WeLauncher {
 
@@ -49,7 +49,7 @@ object WeLauncher {
             result = runCatching { invokeOriginal() }.getOrNull() ?: "null"
         }
 
-        LauncherUI::class.resolve().apply {
+        LauncherUI::class.reflekt().apply {
             // FIXME: see BasePrefsScreen line 298
 //            firstMethod { name = "onCreate" }.hookBeforeDirectly {
 //                Handler(Looper.getMainLooper()).post {

@@ -1,11 +1,12 @@
 [versions]
 agp = "9.2.1"
-coil = "3.4.0"
-compose-bom = "2026.05.01"
+coil = "3.5.0"
+compose-bom = "2026.06.00"
 dexkit = "2.2.0"
 appcompat = "1.7.1"
 composablehorizons-symbols = "2.2.1"
-lifecycle-runtime = "2.10.0"
+junitJupiter = "6.1.0"
+lifecycle-runtime = "2.11.0"
 material = "1.14.0"
 activity = "1.13.0"
 kotlin = "2.4.0"
@@ -16,15 +17,16 @@ profileinstaller = "1.4.1"
 rhino = "45f29f6"
 serialization = "1.11.0"
 lombok = "1.18.46"
-google-protobuf = "4.35.0"
+google-protobuf = "4.35.1"
 ksp = "2.3.9"
-okhttp = "5.3.2"
+okhttp = "5.4.0"
 kavaref = "1.1.0"
 hidden-api-bypass = "6.1"
-runtime = "1.11.2"
+runtime = "1.11.3"
 # noinspection GradleDependency
 compose-material3 = "1.5.0-alpha19" # DO NOT UPDATE. RIPPLE EFFECT BROKE AGAIN
 libsu = "5.2.2"
+# noinspection GradleDependency
 libxposed = "101.0.0"
 dexlib2 = "2.5.2"
 aboutlibraries = "14.2.1"
@@ -77,6 +79,9 @@ miuix-blur = { group = "top.yukonga.miuix.kmp", name = "miuix-blur-android", ver
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 markwon-core = { module = "io.noties.markwon:core", version.ref = "markwon" }
 markwon-ext-strikethrough = { module = "io.noties.markwon:ext-strikethrough", version.ref = "markwon" }

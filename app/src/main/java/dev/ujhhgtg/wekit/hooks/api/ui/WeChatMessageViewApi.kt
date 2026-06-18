@@ -3,19 +3,19 @@ package dev.ujhhgtg.wekit.hooks.api.ui
 import android.view.View
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.util.concurrent.CopyOnWriteArrayList
 
 @HookItem(name = "消息 View 创建监听服务", categories = ["API"], description = "提供消息 View 创建监听能力")
-object WeChatMessageViewApi : ApiHookItem(), IResolvesDex {
+object WeChatMessageViewApi : ApiHookItem(), IResolveDex {
 
     interface ICreateViewListener {
         fun onCreateView(
@@ -46,7 +46,7 @@ object WeChatMessageViewApi : ApiHookItem(), IResolvesDex {
     override fun onEnable() {
         methodChatItemOnBindView.hookAfter {
             val holder = args[0]
-            val view = holder.asResolver()
+            val view = holder.reflekt()
                 .firstField {
                     type = View::class
                     superclass()
@@ -64,17 +64,17 @@ object WeChatMessageViewApi : ApiHookItem(), IResolvesDex {
     }
 
     fun getChattingContextFromParam(param: XC_MethodHook.MethodHookParam): Any {
-        return param.thisObject.asResolver()
+        return param.thisObject.reflekt()
             .firstField { type = WeMessageApi.classChattingContext.clazz }
             .get()!!
     }
 
     fun getMsgInfoFromParam(param: XC_MethodHook.MethodHookParam): MessageInfo {
-        val chattingDataAdapter = param.thisObject.asResolver()
+        val chattingDataAdapter = param.thisObject.reflekt()
             .firstField { type = WeMessageApi.classChattingDataAdapter.clazz }
             .get()!!
         val msgId = param.args[2] as Int
-        val msgInfo = chattingDataAdapter.asResolver()
+        val msgInfo = chattingDataAdapter.reflekt()
             .firstMethod { name = "getItem" }
             .invoke(msgId)!!
         return MessageInfo(msgInfo)

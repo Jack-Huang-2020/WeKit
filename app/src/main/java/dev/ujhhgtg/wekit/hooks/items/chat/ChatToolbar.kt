@@ -44,10 +44,10 @@ import com.composables.icons.materialsymbols.outlined.Photo_library
 import com.composables.icons.materialsymbols.outlined.Redeem
 import com.composables.icons.materialsymbols.outlined.Video_chat
 import com.composables.icons.materialsymbols.outlined.Voice_chat
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import com.tencent.mm.pluginsdk.ui.chat.ChatFooter
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -59,15 +59,14 @@ import dev.ujhhgtg.wekit.ui.utils.iterable
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.now
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.luckypray.dexkit.DexKitBridge
 import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("StaticFieldLeak")
 @HookItem(name = "聊天工具栏", categories = ["聊天"], description = "在输入框上方添加工具栏")
-object ChatToolbar : SwitchHookItem(), IResolvesDex {
+object ChatToolbar : SwitchHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 
@@ -113,17 +112,17 @@ object ChatToolbar : SwitchHookItem(), IResolvesDex {
                 val grids = appPanel.findViewByChildIndexes<ViewGroup>(0, 0, 0)!!
                     .children.map { view -> view as GridView }
                 grids.forEach { grid ->
-                    val onClickListener = grid.asResolver()
+                    val onClickListener = grid.reflekt()
                         .firstField {
                             type = AdapterView.OnItemClickListener::class
                         }.get()!! as AdapterView.OnItemClickListener
-                    val onLongClickListener = grid.asResolver()
+                    val onLongClickListener = grid.reflekt()
                         .firstField {
                             type = AdapterView.OnItemLongClickListener::class
                         }.get()!! as AdapterView.OnItemLongClickListener
                     val listAdapter = grid.adapter
                     listAdapter.iterable(grid).forEachIndexed { index, itemView ->
-                        val name = (itemView.tag.asResolver()
+                        val name = (itemView.tag.reflekt()
                             .firstField { type = TextView::class }
                             .get()!! as TextView).text.toString()
                         tools.add(
@@ -147,7 +146,7 @@ object ChatToolbar : SwitchHookItem(), IResolvesDex {
             }
         }
 
-        ChatFooter::class.resolve()
+        ChatFooter::class.reflekt()
             .firstConstructor {
                 parameters(Context::class, AttributeSet::class, Int::class)
             }

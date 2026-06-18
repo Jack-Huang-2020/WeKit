@@ -1,17 +1,16 @@
 package dev.ujhhgtg.wekit.loader.startup
 
 import android.app.Instrumentation
-import com.highcapable.kavaref.extension.ClassLoaderProvider
 import com.tencent.mm.app.Application
 import dev.ujhhgtg.comptime.This
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.ReflectionClassLoader
 import dev.ujhhgtg.wekit.loader.abc.IHookBridge
 import dev.ujhhgtg.wekit.loader.abc.ILoaderService
 import dev.ujhhgtg.wekit.loader.utils.HybridClassLoader
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
 
 object UnifiedEntryPoint {
 
@@ -23,19 +22,19 @@ object UnifiedEntryPoint {
         hostClassLoader: ClassLoader,
         modulePath: String
     ) {
-        ClassLoaderProvider.classLoader = hostClassLoader
+        ReflectionClassLoader.value = hostClassLoader
         val self = ClassLoaders.MODULE
         val selfParent = self.parent
         HybridClassLoader.moduleParentClassLoader = selfParent
         HybridClassLoader.hostClassLoader = hostClassLoader
-        self.asResolver()
+        self.reflekt()
             .firstField { name = "parent"; superclass() }
             .set(HybridClassLoader)
 
-        Application::class.resolve()
+        Application::class.reflekt()
             .firstMethod { name = "attachBaseContext" }
             .hookAfterDirectly {
-                Instrumentation::class.resolve()
+                Instrumentation::class.reflekt()
                     .firstMethod {
                         name = "callApplicationOnCreate"
                     }

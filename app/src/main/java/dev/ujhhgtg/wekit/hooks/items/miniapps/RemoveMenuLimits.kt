@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.hooks.items.miniapps
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -9,7 +9,7 @@ import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.enums.StringMatchType
 
 @HookItem(name = "去除菜单限制", categories = ["小程序"], description = "移除小程序右上角菜单的限制")
-object RemoveMenuLimits : SwitchHookItem(), IResolvesDex {
+object RemoveMenuLimits : SwitchHookItem(), IResolveDex {
 
     private lateinit var showAndClickableEnumValue: Any
 

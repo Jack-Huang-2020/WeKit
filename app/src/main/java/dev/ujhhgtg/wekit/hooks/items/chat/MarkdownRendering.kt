@@ -33,7 +33,7 @@ import androidx.core.graphics.toColorInt
 import androidx.core.graphics.withTranslation
 import com.tencent.mm.ui.widget.MMNeat7extView
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageInfo
@@ -45,8 +45,7 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.isDarkMode
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.replaceEmojis
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -63,7 +62,7 @@ import org.commonmark.node.Paragraph
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "Markdown 渲染", categories = ["聊天"], description = "渲染 Markdown 消息")
-object MarkdownRendering : ClickableHookItem(), IResolvesDex {
+object MarkdownRendering : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 
@@ -79,7 +78,7 @@ object MarkdownRendering : ClickableHookItem(), IResolvesDex {
     private const val MAX_WIDTH_BUFFER = 40
 
     override fun onEnable() {
-        MMNeat7extView::class.resolve()
+        MMNeat7extView::class.reflekt()
             .firstMethod { name = "onDraw" }
             .hookBefore {
                 val neatTextView = thisObject as View
@@ -87,7 +86,7 @@ object MarkdownRendering : ClickableHookItem(), IResolvesDex {
                     markwon = buildMarkwon(neatTextView.context)
                 }
 
-                var origText = (neatTextView.asResolver()
+                var origText = (neatTextView.reflekt()
                     .firstField {
                         type = CharSequence::class
                         superclass()
@@ -98,8 +97,7 @@ object MarkdownRendering : ClickableHookItem(), IResolvesDex {
                 val msgInfo: Any
 
                 val tag = neatTextView.tag
-                val fMsgInfoWrapper = tag.asResolver()
-                    .optional()
+                val fMsgInfoWrapper = tag.reflekt()
                     .firstFieldOrNull {
                         type = classMsgInfoWrapper.clazz
                         superclass()
@@ -108,16 +106,16 @@ object MarkdownRendering : ClickableHookItem(), IResolvesDex {
                 if (fMsgInfoWrapper != null) {
                     val msgInfoWrapper = fMsgInfoWrapper.get()!!
                     msgInfo = MessageInfo(
-                        msgInfoWrapper.asResolver()
+                        msgInfoWrapper.reflekt()
                             .firstField {
                                 superclass()
                             }
-                            .get()!!.asResolver()
+                            .get()!!.reflekt()
                             .firstField { type = WeMessageApi.classMsgInfo.clazz }
                             .get()!!)
                 } else {
                     msgInfo = MessageInfo(
-                        tag.asResolver()
+                        tag.reflekt()
                             .firstField {
                                 type = WeMessageApi.classMsgInfo.clazz
                                 superclass()

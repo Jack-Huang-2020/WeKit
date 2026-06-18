@@ -41,7 +41,7 @@ import com.composables.icons.materialsymbols.outlined.Person
 import com.composables.icons.materialsymbols.outlined.Shopping_cart
 import com.tencent.mm.plugin.webview.ui.tools.WebViewUI
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -62,7 +62,7 @@ import kotlinx.serialization.Serializable
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "二维码扫描记录", categories = ["系统与隐私"], description = "记录扫描的二维码 URL")
-object QrCodeRecord : ClickableHookItem(), IResolvesDex {
+object QrCodeRecord : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 

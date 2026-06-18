@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.isGone
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -35,7 +35,7 @@ import java.util.WeakHashMap
     categories = ["界面美化"],
     description = "精简我的页面的部分组件",
 )
-object HideMeTabPageItems : ClickableHookItem(), IResolvesDex {
+object HideMeTabPageItems : ClickableHookItem(), IResolveDex {
 
     private var hideMoments by WePrefs.prefOption("hide_me_moments", false)
     private var hideFinder by WePrefs.prefOption("hide_me_finder", false)

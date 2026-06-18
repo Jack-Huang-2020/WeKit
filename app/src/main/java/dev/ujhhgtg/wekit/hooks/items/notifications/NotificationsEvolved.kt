@@ -28,8 +28,7 @@ import dev.ujhhgtg.wekit.utils.TargetProcesses
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.collections.LruCache
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.replaceEmojis
 import dev.ujhhgtg.wekit.utils.replaceRichContent
 import kotlinx.coroutines.CoroutineScope
@@ -137,13 +136,13 @@ object NotificationsEvolved : SwitchHookItem() {
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
-        Notification.Builder::class.resolve()
+        Notification.Builder::class.reflekt()
             .firstMethod { name = "build" }
             .hookBefore {
                 val context = HostInfo.application
 
                 val builder = thisObject as Notification.Builder
-                val notif = builder.asResolver().firstField { type = Notification::class }
+                val notif = builder.reflekt().firstField { type = Notification::class }
                     .get() as Notification
                 val channelId = notif.channelId
 

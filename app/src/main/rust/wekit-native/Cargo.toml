@@ -12,7 +12,7 @@ jni = { version = "0.22", default-features = false }
 libc = "0.2"
 markdown = "1"
 silk-v3-sys = { git = "https://github.com/Ujhhgtg/silk-v3-sys.git" }
-symphonia = { version = "0.5", features = [
+symphonia = { version = "0.6", features = [
     "mp3",
     "pcm",
 ], default-features = false }

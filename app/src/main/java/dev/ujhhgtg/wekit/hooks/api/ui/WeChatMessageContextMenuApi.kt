@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.drawable.Drawable
 import android.view.View
-import com.highcapable.kavaref.extension.isSubclassOf
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
@@ -14,12 +14,12 @@ import dev.ujhhgtg.wekit.hooks.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @SuppressLint("StaticFieldLeak")
 @HookItem(name = "聊天界面消息菜单扩展", categories = ["API"], description = "为聊天界面消息长按菜单提供添加菜单项功能")
-object WeChatMessageContextMenuApi : ApiHookItem(), IResolvesDex {
+object WeChatMessageContextMenuApi : ApiHookItem(), IResolveDex {
 
     interface IMenuItemsProvider {
         fun getMenuItems(): List<MenuItem>
@@ -36,7 +36,7 @@ object WeChatMessageContextMenuApi : ApiHookItem(), IResolvesDex {
     @JvmInline
     value class ChattingContext(val instance: Any) {
         val activity: Activity
-            get() = instance.asResolver()
+            get() = instance.reflekt()
                 .firstMethod {
                     returnType = Activity::class
                 }.invoke()!! as Activity
@@ -71,7 +71,7 @@ object WeChatMessageContextMenuApi : ApiHookItem(), IResolvesDex {
             try {
                 for (item in menuItems.values.flatten()) {
                     if (item.shouldShow(MessageInfo(msgInfo))) {
-                        menu.asResolver()
+                        menu.reflekt()
                             .firstMethod {
                                 parameters(Int::class, CharSequence::class, Drawable::class)
                                 returnType = android.view.MenuItem::class
@@ -89,14 +89,14 @@ object WeChatMessageContextMenuApi : ApiHookItem(), IResolvesDex {
         }
 
         methodSelectMenuItem.hookBefore {
-            val viewOnLongClickListener = thisObject.asResolver()
+            val viewOnLongClickListener = thisObject.reflekt()
                 .firstField {
                     type {
                         it isSubclassOf View.OnLongClickListener::class
                     }
                 }
                 .get() as View.OnLongClickListener
-            val chattingContext = viewOnLongClickListener.asResolver()
+            val chattingContext = viewOnLongClickListener.reflekt()
                 .firstField {
                     type = WeMessageApi.classChattingContext.clazz
                     superclass()

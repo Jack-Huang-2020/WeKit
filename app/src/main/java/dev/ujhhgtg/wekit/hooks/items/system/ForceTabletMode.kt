@@ -4,7 +4,7 @@ import android.content.Context
 import android.widget.Button
 import androidx.compose.material3.Text
 import androidx.core.view.isGone
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -15,7 +15,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "强制平板模式", categories = ["系统与隐私"], description = "让微信将当前设备识别为平板")
-object ForceTabletMode : SwitchHookItem(), IResolvesDex {
+object ForceTabletMode : SwitchHookItem(), IResolveDex {
 
     private val methodIsTablet by dexMethod()
     private val methodOtherDeviceLoginButtonIsVisible by dexMethod()

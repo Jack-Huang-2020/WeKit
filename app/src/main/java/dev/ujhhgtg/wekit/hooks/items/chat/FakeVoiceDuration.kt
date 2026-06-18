@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -20,7 +20,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "伪装语音时长", categories = ["聊天"], description = "预设定伪装发送语音显示的时长")
-object FakeVoiceDuration : ClickableHookItem(), IResolvesDex {
+object FakeVoiceDuration : ClickableHookItem(), IResolveDex {
 
     private val methodVoiceRecorderGetLength by dexMethod()
     private const val KEY_DURATION = "fake_voice_duration"

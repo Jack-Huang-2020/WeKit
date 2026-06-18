@@ -1,8 +1,7 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeServiceApi
@@ -29,7 +28,7 @@ import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 
 @HookItem(name = "语音保存到本地", categories = ["聊天"], description = "在语音消息菜单添加保存按钮, 允许将语音文件保存到本地")
-object SaveVoicesToLocalStorage : SwitchHookItem(), IResolvesDex,
+object SaveVoicesToLocalStorage : SwitchHookItem(), IResolveDex,
     WeChatMessageContextMenuApi.IMenuItemsProvider {
 
     private val TAG = This.Class.simpleName

@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.hooks.items.payment
 
 import android.app.Activity
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 

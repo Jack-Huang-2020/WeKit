@@ -1,16 +1,16 @@
 package dev.ujhhgtg.wekit.hooks.items.miniapps
 
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.json.JSONObject
 
 @HookItem(name = "移除视频广告", categories = ["小程序"], description = "跳过小程序视频广告")
 object RemoveVideoAds : SwitchHookItem() {
 
     override fun onEnable() {
-        "com.tencent.mm.appbrand.commonjni.AppBrandJsBridgeBinding".toClass().resolve()
+        "com.tencent.mm.appbrand.commonjni.AppBrandJsBridgeBinding".toClass().reflekt()
             .firstMethod { name = "subscribeHandler" }
             .hookBefore {
                 val type = args[0] as String? ?: ""

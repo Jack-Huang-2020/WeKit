@@ -7,7 +7,7 @@ import com.tencent.wcdb.database.SQLiteCipherSpec
 import com.tencent.wcdb.database.SQLiteDatabase
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.Preferences
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.models.SelfProfileField
@@ -20,7 +20,7 @@ import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.BString
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.reflection.int
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
@@ -34,7 +34,7 @@ import java.lang.reflect.Modifier
 @OptIn(ExperimentalSerializationApi::class)
 @SuppressLint("DiscouragedApi")
 @HookItem(name = "数据库服务", categories = ["API"], description = "提供数据库直接查询能力")
-object WeDatabaseApi : ApiHookItem(), IResolvesDex {
+object WeDatabaseApi : ApiHookItem(), IResolveDex {
 
     private val classMmKernel by dexClass()
     private val methodGetStorage by dexMethod()
@@ -47,7 +47,7 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
     private val TAG = This.Class.simpleName
 
     val coreStorage by lazy {
-        classMmKernel.asResolver()
+        classMmKernel.reflekt()
             .firstMethod {
                 parameterCount = 0
                 returnType = classCoreStorage.clazz
@@ -56,7 +56,7 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
     }
 
     val configStorage by lazy {
-        coreStorage.asResolver()
+        coreStorage.reflekt()
             .firstMethod {
                 parameterCount = 0
                 returnType = classConfigStorage.clazz
@@ -65,7 +65,7 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
     }
 
     fun getSelfProfileField(field: SelfProfileField, defValue: Any? = null) =
-        configStorage.asResolver()
+        configStorage.reflekt()
             .firstMethod {
                 parameters(Int::class, Any::class)
                 returnType = Any::class
@@ -320,7 +320,7 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
         }
 
         if (Preferences.verboseLog) {
-            SQLiteDatabase::class.asResolver().firstMethod {
+            SQLiteDatabase::class.reflekt().firstMethod {
                 name = "openDatabase"
                 parameters(BString, ByteArray::class, SQLiteCipherSpec::class, SQLiteDatabase.CursorFactory::class, int, DatabaseErrorHandler::class, int)
             }.hookBefore {
@@ -339,12 +339,12 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
 
     @Synchronized
     private fun initializeDatabase(storageObj: Any) {
-        val wrapperObj = storageObj.asResolver()
+        val wrapperObj = storageObj.reflekt()
             .firstField {
                 type = classSqliteDbWrapper.clazz
             }.get() ?: return
 
-        db = wrapperObj.asResolver()
+        db = wrapperObj.reflekt()
             .firstMethod {
                 parameterCount = 0
                 returnType = "com.tencent.wcdb.database.SQLiteDatabase"

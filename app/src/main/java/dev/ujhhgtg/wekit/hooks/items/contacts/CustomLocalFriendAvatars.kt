@@ -51,13 +51,17 @@ import coil3.request.allowHardware
 import coil3.request.crossfade
 import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Search
-import com.highcapable.kavaref.condition.type.Modifiers
-import com.highcapable.kavaref.extension.isSubclassOf
-import com.highcapable.kavaref.extension.toClass
 import dev.ujhhgtg.comptime.This
+import dev.ujhhgtg.reflekt.fields
+import dev.ujhhgtg.reflekt.firstField
+import dev.ujhhgtg.reflekt.firstMethod
+import dev.ujhhgtg.reflekt.utils.Modifiers
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
+import dev.ujhhgtg.reflekt.utils.makeAccessible
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
@@ -81,10 +85,6 @@ import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import dev.ujhhgtg.wekit.utils.reflection.BString
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
 import dev.ujhhgtg.wekit.utils.reflection.bool
-import dev.ujhhgtg.wekit.utils.reflection.fields
-import dev.ujhhgtg.wekit.utils.reflection.firstField
-import dev.ujhhgtg.wekit.utils.reflection.firstMethod
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
 import kotlinx.serialization.json.Json
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -101,7 +101,7 @@ import kotlin.math.min
     name = "自定义好友本地头像", categories = ["联系人与群组", "联系人详情页面"],
     description = "为指定联系人或群组使用本地图片替换微信内显示的头像"
 )
-object CustomLocalFriendAvatars : ClickableHookItem(), IContactInfoProvider, IResolvesDex {
+object CustomLocalFriendAvatars : ClickableHookItem(), IContactInfoProvider, IResolveDex {
 
     private const val PREF_KEY = "custom_avatar"
     private const val SEP = ";"
@@ -299,7 +299,7 @@ object CustomLocalFriendAvatars : ClickableHookItem(), IContactInfoProvider, IRe
     private var roundAvatarRadiusFactor by prefOption("custom_avatar_round_radius", 0.5f)
 
     private fun effectiveRadiusFactor(loaderRadiusFactor: Float): Float {
-        return if (RoundAvatarHook.isEnabled) roundAvatarRadiusFactor else loaderRadiusFactor
+        return if (RoundAvatars.isEnabled) roundAvatarRadiusFactor else loaderRadiusFactor
     }
 
     // com.tencent.mm.pluginsdk.ui.u.b
@@ -608,7 +608,7 @@ object CustomLocalFriendAvatars : ClickableHookItem(), IContactInfoProvider, IRe
 
         hdGallerySetAdapterMethod = galleryClass.firstMethod {
             name = "setAdapter"
-            parameters(SpinnerAdapter::class.java)
+            parameters(SpinnerAdapter::class)
         }.self.makeAccessible()
     }
 

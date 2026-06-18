@@ -2,8 +2,8 @@ package dev.ujhhgtg.wekit.hooks.items.scripting_js
 
 import android.os.Handler
 import android.os.Looper
-import com.highcapable.kavaref.extension.createInstance
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.toClass
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
@@ -17,7 +17,7 @@ import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.reflection.asMethod
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement

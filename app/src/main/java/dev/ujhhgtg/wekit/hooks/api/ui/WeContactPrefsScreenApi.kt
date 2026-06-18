@@ -3,18 +3,18 @@ package dev.ujhhgtg.wekit.hooks.api.ui
 import android.app.Activity
 import android.content.Context
 import android.widget.BaseAdapter
-import com.highcapable.kavaref.condition.type.Modifiers
-import com.highcapable.kavaref.extension.isSubclassOf
 import com.tencent.mm.chatroom.ui.ChatroomInfoUI
 import com.tencent.mm.plugin.profile.ui.ContactInfoUI
 import com.tencent.mm.ui.base.preference.MMPreference
 import com.tencent.mm.ui.base.preference.Preference
 import dev.ujhhgtg.comptime.This
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.Modifiers
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
-import dev.ujhhgtg.wekit.utils.reflection.resolve
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -62,7 +62,7 @@ object WeContactPrefsScreenApi : ApiHookItem() {
             ContactInfoUI::class,
             ChatroomInfoUI::class
         ).forEach {
-            it.resolve().apply {
+            it.reflekt().apply {
                 firstMethod { name = "initView" }
                     .hookAfter {
                         val adapterInstance = adapterField.get(thisObject as Activity)
@@ -111,37 +111,37 @@ object WeContactPrefsScreenApi : ApiHookItem() {
     }
 
     private fun initReflection() {
-        prefConstructor = Preference::class.resolve()
+        prefConstructor = Preference::class.reflekt()
             .firstConstructor {
                 parameters(Context::class)
             }.self
 
-        prefKeyField = Preference::class.resolve()
+        prefKeyField = Preference::class.reflekt()
             .firstField {
                 type = String::class
                 modifiers { !it.contains(Modifiers.FINAL) }
             }.self.makeAccessible()
 
-        adapterField = MMPreference::class.resolve()
+        adapterField = MMPreference::class.reflekt()
             .firstField {
                 modifiers { !it.contains(Modifiers.STATIC) }
                 type { it isSubclassOf BaseAdapter::class }
             }.self.makeAccessible()
 
-        addPreferenceMethod = adapterField.type.resolve()
+        addPreferenceMethod = adapterField.type.reflekt()
             .firstMethod {
                 modifiers { !it.contains(Modifiers.FINAL) }
                 parameters(Preference::class, Int::class)
             }.self
 
-        setKeyMethod = Preference::class.resolve()
+        setKeyMethod = Preference::class.reflekt()
             .firstMethod {
                 parameters(String::class)
                 returnType = Void.TYPE
             }.self
 
-        val charSeqMethods = Preference::class.resolve()
-            .method {
+        val charSeqMethods = Preference::class.reflekt()
+            .methods {
                 parameters(CharSequence::class)
             }.map { it.self }
 

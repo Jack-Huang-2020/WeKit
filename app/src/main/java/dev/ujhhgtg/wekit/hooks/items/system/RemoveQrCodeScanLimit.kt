@@ -1,13 +1,13 @@
 package dev.ujhhgtg.wekit.hooks.items.system
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "移除二维码扫描限制", categories = ["系统与隐私"], description = "移除长按图片与相册选择的二维码扫描限制")
-object RemoveQrCodeScanLimit : SwitchHookItem(), IResolvesDex {
+object RemoveQrCodeScanLimit : SwitchHookItem(), IResolveDex {
 
     enum class ScanScene(val source: Int, val a8KeyScene: Int) {
         CAMERA(0, 4), // 相机扫描

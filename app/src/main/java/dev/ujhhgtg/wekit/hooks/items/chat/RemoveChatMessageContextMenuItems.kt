@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -18,11 +18,11 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.reflection.BInt
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "移除消息菜单项", categories = ["聊天"], description = "从消息的长按菜单中移除指定名称的菜单项")
-object RemoveChatMessageContextMenuItems : ClickableHookItem(), IResolvesDex {
+object RemoveChatMessageContextMenuItems : ClickableHookItem(), IResolveDex {
 
     // although there are multiple addMenuItem() methods, i only found the usage of those two in the context menu of chat messages
     private val methodAddMenuItem1 by dexMethod()
@@ -39,7 +39,7 @@ object RemoveChatMessageContextMenuItems : ClickableHookItem(), IResolvesDex {
                     .split(',')
 
             if (removedNames.contains(name)) {
-                val list = thisObject.asResolver()
+                val list = thisObject.reflekt()
                     .firstField { type = List::class }
                     .get()!! as ArrayList<*>
                 list.removeAt(list.size - 1)
@@ -53,7 +53,7 @@ object RemoveChatMessageContextMenuItems : ClickableHookItem(), IResolvesDex {
                     .split(',')
 
             if (removedNames.contains(name)) {
-                val list = thisObject.asResolver()
+                val list = thisObject.reflekt()
                     .firstField { type = List::class }
                     .get()!! as ArrayList<*>
                 list.removeAt(list.size - 1)

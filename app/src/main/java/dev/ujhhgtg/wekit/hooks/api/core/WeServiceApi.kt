@@ -1,18 +1,18 @@
 package dev.ujhhgtg.wekit.hooks.api.core
 
-import com.highcapable.kavaref.condition.type.Modifiers
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.utils.Modifiers
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
 @HookItem(name = "微信服务管理服务", categories = ["API"], description = "提供获取并使用微信服务的能力")
-object WeServiceApi : ApiHookItem(), IResolvesDex {
+object WeServiceApi : ApiHookItem(), IResolveDex {
 
     private val methodServiceManagerGetService by dexMethod()
     private val classEmojiFeatureService by dexClass()
@@ -40,7 +40,7 @@ object WeServiceApi : ApiHookItem(), IResolvesDex {
     }
 
     val messageInfoStorage by lazy {
-        storageFeatureService.asResolver()
+        storageFeatureService.reflekt()
             .firstMethod {
                 parameterCount = 0
                 returnType = WeMessageApi.classMsgInfoStorage.clazz
@@ -65,7 +65,7 @@ object WeServiceApi : ApiHookItem(), IResolvesDex {
     }
 
     val imageInfoStorage by lazy {
-        classImageFeatureService.asResolver()
+        classImageFeatureService.reflekt()
             .firstMethod {
                 modifiers { it.contains(Modifiers.STATIC) }
                 returnType = classImageInfoStorage.clazz
@@ -73,7 +73,7 @@ object WeServiceApi : ApiHookItem(), IResolvesDex {
     }
 
     fun getImageMd5FromMsgInfo(msgInfo: MessageInfo): String {
-        return imageInfoStorage.asResolver()
+        return imageInfoStorage.reflekt()
             .firstMethod {
                 returnType = String::class
                 parameters(WeMessageApi.classMsgInfo.clazz)
@@ -81,7 +81,7 @@ object WeServiceApi : ApiHookItem(), IResolvesDex {
     }
 
     val videoPathFeatureService by lazy {
-        classVideoService.asResolver()
+        classVideoService.reflekt()
             .firstMethod {
                 modifiers { it.contains(Modifiers.STATIC) }
                 returnType = methodVideoPathFeatureServiceRestoreMp4Path.method.declaringClass

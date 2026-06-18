@@ -2,14 +2,14 @@ package dev.ujhhgtg.wekit.hooks.items.miniapps
 
 import android.app.Activity
 import com.tencent.mm.plugin.appbrand.ad.ui.AppBrandAdUI
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "移除开屏广告", categories = ["小程序"], description = "跳过小程序开屏广告")
-object RemoveSplashAds : SwitchHookItem(), IResolvesDex {
+object RemoveSplashAds : SwitchHookItem(), IResolveDex {
 
     private val methodIsAdContact by dexMethod()
     private val methodAdDataCallback by dexMethod()

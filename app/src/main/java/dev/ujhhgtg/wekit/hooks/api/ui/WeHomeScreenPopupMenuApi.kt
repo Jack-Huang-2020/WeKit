@@ -6,11 +6,12 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import androidx.collection.mutableIntObjectMapOf
 import androidx.core.util.size
-import com.highcapable.kavaref.extension.createInstance
-import com.highcapable.kavaref.extension.isSubclassOf
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
@@ -20,12 +21,11 @@ import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.reflection.BBool
 import dev.ujhhgtg.wekit.utils.reflection.BInt
 import dev.ujhhgtg.wekit.utils.reflection.BString
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.util.concurrent.CopyOnWriteArrayList
 
 @HookItem(name = "首页菜单服务", categories = ["API"], description = "提供向首页右上角菜单添加菜单项的能力")
-object WeHomeScreenPopupMenuApi : ApiHookItem(), IResolvesDex {
+object WeHomeScreenPopupMenuApi : ApiHookItem(), IResolveDex {
 
     interface IMenuItemsProvider {
         fun getMenuItems(param: XC_MethodHook.MethodHookParam): List<MenuItem>
@@ -64,30 +64,30 @@ object WeHomeScreenPopupMenuApi : ApiHookItem(), IResolvesDex {
             var thisObj = thisObject
 
             if (thisObj.javaClass.simpleName == "HomeUI") {
-                thisObj = thisObj.asResolver()
+                thisObj = thisObj.reflekt()
                     .firstField { type = methodHandleItemClick.method.declaringClass }
                     .get()!!
             }
 
             @Suppress("UNCHECKED_CAST")
-            val items = thisObj.asResolver()
+            val items = thisObj.reflekt()
                 .firstField {
                     type = SparseArray::class
                 }
                 .get()!! as SparseArray<Any>
-            val baseAdapter = thisObj.asResolver()
+            val baseAdapter = thisObj.reflekt()
                 .firstField {
                     type { it isSubclassOf BaseAdapter::class }
                 }
                 .get()!! as BaseAdapter
 
-            baseAdapter.asResolver().firstMethod {
+            baseAdapter.reflekt().firstMethod {
                 name = "getView"
             }.apply {
                 var unhook: XC_MethodHook.Unhook? = null
 
                 hookBefore {
-                    unhook = ImageView::class.asResolver().firstMethod {
+                    unhook = ImageView::class.reflekt().firstMethod {
                         name = "setImageResource"
                     }.hookBeforeDirectly {
                         val fakeResId = args[0] as Int
@@ -133,17 +133,17 @@ object WeHomeScreenPopupMenuApi : ApiHookItem(), IResolvesDex {
             val thisObj = thisObject
 
             @Suppress("UNCHECKED_CAST")
-            val items = thisObj.asResolver()
+            val items = thisObj.reflekt()
                 .firstField {
                     type = SparseArray::class
                 }
                 .get()!! as SparseArray<Any>
             val position = args[2] as Int
             val itemWrapper = items.get(position)
-            val itemData = itemWrapper.asResolver()
+            val itemData = itemWrapper.reflekt()
                 .firstField { type = classMenuItemData.clazz }.get()!!
-            val id = itemData.asResolver()
-                .field { type = Int::class }[1].get()!! as Int
+            val id = itemData.reflekt()
+                .fields { type = Int::class }[1].get()!! as Int
 
             for (provider in providers) {
                 for (item in provider.getMenuItems(this)) {

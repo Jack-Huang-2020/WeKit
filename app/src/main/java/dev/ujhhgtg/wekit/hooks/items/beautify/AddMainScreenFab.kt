@@ -54,6 +54,7 @@ import com.composables.icons.materialsymbols.outlinedfilled.Add
 import com.composables.icons.materialsymbols.outlinedfilled.Bookmark
 import com.composables.icons.materialsymbols.outlinedfilled.Camera
 import com.composables.icons.materialsymbols.outlinedfilled.Cancel
+import com.composables.icons.materialsymbols.outlinedfilled.Check_circle
 import com.composables.icons.materialsymbols.outlinedfilled.Extension
 import com.composables.icons.materialsymbols.outlinedfilled.Favorite
 import com.composables.icons.materialsymbols.outlinedfilled.Movie
@@ -78,7 +79,7 @@ import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.UUID
@@ -119,7 +120,8 @@ object AddMainScreenFab : ClickableHookItem() {
             "Cancel" to MaterialSymbols.OutlinedFilled.Cancel,
             "Update" to MaterialSymbols.OutlinedFilled.Update,
             "Bookmark" to MaterialSymbols.OutlinedFilled.Bookmark,
-            "Favorite" to MaterialSymbols.OutlinedFilled.Favorite
+            "Favorite" to MaterialSymbols.OutlinedFilled.Favorite,
+            "Check_circle" to MaterialSymbols.OutlinedFilled.Check_circle
         )
     }
 
@@ -142,7 +144,7 @@ object AddMainScreenFab : ClickableHookItem() {
         FabItemConfig("5", FabType.START_ACTIVITY, "设置", "Settings", "com.tencent.mm.plugin.setting.ui.setting_new.MainSettingsUI"),
         FabItemConfig("6", FabType.MODULE_SETTINGS, "模块设置", "Extension"),
         FabItemConfig("7", FabType.FORCE_STOP, "强制停止", "Cancel"),
-        FabItemConfig("8", FabType.MARK_ALL_READ, "全部已读", "Update")
+        FabItemConfig("8", FabType.MARK_ALL_READ, "全部已读", "Check_circle")
     )
 
     private fun loadConfig(): List<FabItemConfig> {
@@ -174,7 +176,7 @@ object AddMainScreenFab : ClickableHookItem() {
 
     override fun onEnable() {
         WeMainActivityBeautifyApi.methodDoOnCreate.hookAfter {
-            val activity = thisObject.asResolver()
+            val activity = thisObject.reflekt()
                 .firstField {
                     type = "com.tencent.mm.ui.MMFragmentActivity"
                 }

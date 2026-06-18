@@ -3,20 +3,20 @@ package dev.ujhhgtg.wekit.hooks.items.moments
 import android.app.Activity
 import android.view.MotionEvent
 import android.widget.FrameLayout
-import com.highcapable.kavaref.extension.isSubclassOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.isBuiltin
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.isBuiltin
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 @HookItem(name = "单击不关闭视频播放器", categories = ["朋友圈"], description = "朋友圈视频播放器内单击视频将展开/折叠控制栏而非关闭视频 (遇到长视频下意识点一下就给我视频关了, 有点反人类了)")
-object NoCloseVideoPlayerOnClick : SwitchHookItem(), IResolvesDex {
+object NoCloseVideoPlayerOnClick : SwitchHookItem(), IResolveDex {
 
     private lateinit var activityField: Field
     private lateinit var viewStateField: Field
@@ -27,7 +27,7 @@ object NoCloseVideoPlayerOnClick : SwitchHookItem(), IResolvesDex {
             val event = args[1] as MotionEvent
             if ((event.action and 0xFF) == MotionEvent.ACTION_UP) {
                 if (!::activityField.isInitialized) {
-                    activityField = thisObject.asResolver()
+                    activityField = thisObject.reflekt()
                         .firstField { type { it isSubclassOf Activity::class } }
                         .self
                 }
@@ -35,7 +35,7 @@ object NoCloseVideoPlayerOnClick : SwitchHookItem(), IResolvesDex {
                 val activity = activityField.get(thisObject) as Activity
 
                 if (!::viewStateField.isInitialized) {
-                    viewStateField = activity.asResolver()
+                    viewStateField = activity.reflekt()
                         .firstField {
                             type { !it.isBuiltin }
                         }.self
@@ -44,13 +44,12 @@ object NoCloseVideoPlayerOnClick : SwitchHookItem(), IResolvesDex {
                 val viewState = viewStateField.get(activity)
 
                 // this doesn't actually inherit HeroSeekBarView
-                val expandableSeekBar = (viewState.asResolver()
-                    .optional()
+                val expandableSeekBar = (viewState.reflekt()
                     .firstFieldOrNull { type = "com.tencent.mm.pluginsdk.ui.seekbar.ExpandableHeroSeekBarView" }
                     ?: return@hookBefore).get()!!
 
                 if (!::getToggleBtnMethod.isInitialized) {
-                    getToggleBtnMethod = expandableSeekBar.asResolver()
+                    getToggleBtnMethod = expandableSeekBar.reflekt()
                         .firstMethod { name = "getExpandBarBtn" }
                         .self.makeAccessible()
                 }

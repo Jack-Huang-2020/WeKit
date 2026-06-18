@@ -18,7 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.tencent.mm.ui.halfscreen.HalfScreenTransparentActivity
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -27,13 +27,13 @@ import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 import kotlin.math.roundToInt
 
 @HookItem(name = "对话框窗口级背景模糊", categories = ["界面美化"], description = "为模块与微信的对话框添加窗口级模糊处理 [需 SDK >= 31]")
-object ApplyDialogBackgroundBlur : ClickableHookItem(), IResolvesDex {
+object ApplyDialogBackgroundBlur : ClickableHookItem(), IResolveDex {
 
     private val TAG = nameOf(ApplyDialogBackgroundBlur)
 
@@ -52,7 +52,7 @@ object ApplyDialogBackgroundBlur : ClickableHookItem(), IResolvesDex {
             HalfScreenTransparentActivity::class.java,
             Dialog::class.java
         ).forEach {
-            it.resolve()
+            it.reflekt()
                 .firstMethod {
                     name = "onCreate"
                 }

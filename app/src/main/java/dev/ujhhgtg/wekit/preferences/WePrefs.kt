@@ -59,6 +59,10 @@ abstract class WePrefs protected constructor() : SharedPreferences, SharedPrefer
             return default.getBoolOrFalse(key)
         }
 
+        fun getBoolOrDef(key: String, def: Boolean): Boolean {
+            return default.getBoolean(key, def)
+        }
+
         fun getString(key: String): String? {
             return default.getString(key)
         }

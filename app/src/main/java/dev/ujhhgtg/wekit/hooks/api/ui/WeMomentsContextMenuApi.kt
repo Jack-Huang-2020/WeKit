@@ -5,17 +5,17 @@ import android.graphics.drawable.Drawable
 import android.view.ContextMenu
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
 @HookItem(name = "朋友圈菜单增强扩展", categories = ["API"], description = "为朋友圈消息长按菜单提供添加菜单项功能")
-object WeMomentsContextMenuApi : ApiHookItem(), IResolvesDex {
+object WeMomentsContextMenuApi : ApiHookItem(), IResolveDex {
 
     private val TAG = nameOf(WeMomentsContextMenuApi)
 
@@ -112,7 +112,7 @@ object WeMomentsContextMenuApi : ApiHookItem(), IResolvesDex {
     private fun handleCreateMenu(param: XC_MethodHook.MethodHookParam) {
         val menu = param.args.getOrNull(0) as? ContextMenu? ?: return
         for (item in menuItems.values.flatten()) {
-            menu.asResolver()
+            menu.reflekt()
                 .firstMethod {
                     parameters(Int::class, CharSequence::class, Drawable::class)
                 }

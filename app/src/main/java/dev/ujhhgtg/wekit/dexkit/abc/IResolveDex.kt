@@ -9,7 +9,7 @@ import org.luckypray.dexkit.DexKitBridge
  * 实现类通过 [dev.ujhhgtg.wekit.dexkit.dsl.dexClass] / [dev.ujhhgtg.wekit.dexkit.dsl.dexMethod] / [dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor] 工厂函数声明委托属性，
  * 这些委托在构造时自动注册到 [dexDelegates]。
  */
-interface IResolvesDex {
+interface IResolveDex {
 
     /**
      * 当前 HookItem 持有的所有 Dex 委托。

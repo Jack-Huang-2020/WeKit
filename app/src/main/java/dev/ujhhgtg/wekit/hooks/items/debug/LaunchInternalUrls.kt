@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeUnsafeApi
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -20,7 +20,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "启动微信内部 URL", categories = ["调试"], description = "跳转微信 weixin:// URL")
-object LaunchInternalUrls : ClickableHookItem(), IResolvesDex {
+object LaunchInternalUrls : ClickableHookItem(), IResolveDex {
 
     override val noSwitchWidget = true
 

@@ -28,6 +28,8 @@ object ModuleLoader {
         ClassLoaderRegistry.hookConstructors()
 
         WeLogger.i(TAG, "loading in entry point ${loaderService.entryPointName}")
-        UnifiedEntryPoint.entry(loaderService, hookBridge, hostClassLoader, modulePath)
+        runCatching {
+            UnifiedEntryPoint.entry(loaderService, hookBridge, hostClassLoader, modulePath)
+        }.onFailure { WeLogger.e(TAG, "UnifiedEntryPoint failed", it) }
     }
 }

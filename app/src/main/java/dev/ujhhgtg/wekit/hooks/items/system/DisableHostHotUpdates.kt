@@ -5,7 +5,7 @@ import com.tencent.tinker.loader.shareutil.ShareTinkerInternals
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.HostInfo
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.deleteRecursively
@@ -18,8 +18,8 @@ object DisableHostHotUpdates : SwitchHookItem() {
     override fun onEnable() {
         runCatching { Path("/data/data/${HostInfo.packageName}/tinker").deleteRecursively() }
 
-        ShareTinkerInternals::class.resolve()
-            .method {
+        ShareTinkerInternals::class.reflekt()
+            .methods {
                 name {
                     it.startsWith("isTinkerEnabled")
                 }

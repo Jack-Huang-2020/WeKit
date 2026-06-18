@@ -7,7 +7,7 @@ import dev.ujhhgtg.wekit.hooks.api.core.models.MessageType
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import java.lang.reflect.Field
 
 @HookItem(name = "隐藏发送消息头像", categories = ["聊天"], description = "隐藏自己发出的消息的用户头像 (Telegram 风格)")
@@ -29,7 +29,7 @@ object HideOutgoingMessagesAvatar : SwitchHookItem(), WeChatMessageViewApi.ICrea
         if (!msgInfo.isSelfSender) return
 
         if (!::avatarViewField.isInitialized) {
-            avatarViewField = tag.asResolver()
+            avatarViewField = tag.reflekt()
                 .firstField {
                     name = "avatarIV"
                     superclass()

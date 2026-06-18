@@ -4,9 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import com.tencent.mm.chatroom.ui.SelectedMemberChattingRecordUI
 import dev.ujhhgtg.wekit.hooks.api.ui.WeContactPrefsScreenApi
+import dev.ujhhgtg.wekit.hooks.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.hooks.items.chat.ChatInputBarEnhancements
 import dev.ujhhgtg.wekit.utils.android.currentWxId
 
 @HookItem(
@@ -27,8 +27,7 @@ object DisplayGroupMemberMessages : SwitchHookItem(), WeContactPrefsScreenApi.IC
     }
 
     override fun getContactInfoItem(activity: Activity): List<WeContactPrefsScreenApi.ContactInfoItem> {
-        val wxId = activity.currentWxId ?: return emptyList()
-        if (wxId.endsWith("@chatroom")) return emptyList()
+        if (!WeCurrentConversationApi.value.endsWith("@chatroom")) return emptyList()
 
         return listOf(
             WeContactPrefsScreenApi.ContactInfoItem(
@@ -42,7 +41,7 @@ object DisplayGroupMemberMessages : SwitchHookItem(), WeContactPrefsScreenApi.IC
     override fun onItemClick(activity: Activity, key: String): Boolean {
         if (key != PREF_KEY) return false
 
-        val groupId = ChatInputBarEnhancements.currentConv
+        val groupId = WeCurrentConversationApi.value
         val memberId = activity.currentWxId ?: return true
 
         activity.startActivity(Intent(activity, SelectedMemberChattingRecordUI::class.java).apply {

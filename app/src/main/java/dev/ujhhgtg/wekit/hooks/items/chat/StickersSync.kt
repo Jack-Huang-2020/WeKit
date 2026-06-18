@@ -13,12 +13,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.highcapable.kavaref.condition.type.Modifiers
-import com.highcapable.kavaref.extension.createInstance
-import com.highcapable.kavaref.extension.isSubclassOf
 import com.tencent.mm.storage.emotion.EmojiGroupInfo
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.Modifiers
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
@@ -36,9 +37,8 @@ import dev.ujhhgtg.wekit.utils.enumValueOfClass
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
 import dev.ujhhgtg.wekit.utils.polyfills.intoList
-import dev.ujhhgtg.wekit.utils.reflection.asClass
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
+import dev.ujhhgtg.wekit.utils.reflection.asClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -67,7 +67,7 @@ import kotlin.io.path.walk
 import kotlin.io.path.writeText
 
 @HookItem(name = "贴纸包同步", categories = ["聊天"], description = "从指定路径将所有图片注册为贴纸包\n搭配 Telegram Xposed 模块 StickersSync 使用, 或使用自带此功能的 (例如 Nagram) 的第三方客户端\n注意: 每张贴纸第一次加载由于需要计算 MD5 速度较慢, 后续加载得益于缓存与并发速度将大大加快 (~2000 个贴纸仅需 4 秒)")
-object StickersSync : ClickableHookItem(), IResolvesDex {
+object StickersSync : ClickableHookItem(), IResolveDex {
 
     private val TAG = nameOf(StickersSync)
     private const val STICKER_PACK_ID_PREFIX = "wekit.stickers.sync"
@@ -232,7 +232,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
     }
 
     private val emojiMgrImpl: Any by lazy {
-        WeServiceApi.emojiFeatureService.asResolver()
+        WeServiceApi.emojiFeatureService.reflekt()
             .firstMethod {
                 returnType = classEmojiMgrImpl.clazz
             }
@@ -241,7 +241,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
 
     fun getEmojiMd5FromPath(context: Context, path: String): String {
         return emojiMgrImpl
-            .asResolver()
+            .reflekt()
             .firstMethod {
                 parameters(Context::class.java, String::class.java)
                 returnType = String::class.java
@@ -250,13 +250,13 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
     }
 
     private val emojiInfoStorage by lazy {
-        val emojiStorageMgr = classEmojiStorageMgr.asResolver()
+        val emojiStorageMgr = classEmojiStorageMgr.reflekt()
             .firstMethod {
-                modifiers(Modifiers.STATIC)
+                modifiers { it.contains(Modifiers.STATIC) }
                 returnType = classEmojiStorageMgr.clazz
             }
             .invoke()!!
-        emojiStorageMgr.asResolver()
+        emojiStorageMgr.reflekt()
             .firstMethod {
                 returnType = classEmojiInfoStorage.clazz
             }
@@ -264,7 +264,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
     }
 
     fun getEmojiInfoByMd5(md5: String): Any {
-        return emojiInfoStorage.asResolver()
+        return emojiInfoStorage.reflekt()
             .firstMethod {
                 parameters(String::class)
                 returnType = "com.tencent.mm.storage.emotion.EmojiInfo"
@@ -310,20 +310,20 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
         methodAddAllGroupItems.hookBefore {
             val manager = args[0] ?: return@hookBefore
 
-            val packConfig = manager.asResolver()
+            val packConfig = manager.reflekt()
                 .firstMethod {
                     superclass()
-                    modifiers(Modifiers.FINAL)
+                    modifiers { it.contains(Modifiers.FINAL) }
                     returnType {
                         it != Boolean::class.java
                     }
                 }
                 .invoke()
-            val emojiGroupInfo = packConfig!!.asResolver()
+            val emojiGroupInfo = packConfig!!.reflekt()
                 .firstField {
                     type = "com.tencent.mm.storage.emotion.EmojiGroupInfo"
                 }.get()!!
-            val packId = emojiGroupInfo.asResolver()
+            val packId = emojiGroupInfo.reflekt()
                 .firstField {
                     superclass()
                     name = "field_packName"
@@ -333,7 +333,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
             // Find matching sticker pack
             val matchingPack = stickerPacks.find { it.packId == packId }
             if (matchingPack != null) {
-                val stickerList = manager.asResolver().firstMethod {
+                val stickerList = manager.reflekt().firstMethod {
                     superclass()
                     returnType = List::class
                 }.invoke() as MutableList<Any?>
@@ -344,7 +344,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
         ctorResourceLoadOptions.hookAfter {
             val url = args[0] as String
             if (url.startsWith(PLACEHOLDER_PACK_URL)) {
-                val fResSource = thisObject.asResolver()
+                val fResSource = thisObject.reflekt()
                     .firstField {
                         type { it isSubclassOf Enum::class }
                     }
@@ -364,7 +364,7 @@ object StickersSync : ClickableHookItem(), IResolvesDex {
                     }
                     (fallback ?: packDir / ".pack_icon.png").absolutePathString()
                 }
-                thisObject.asResolver()
+                thisObject.reflekt()
                     .firstField { type = Any::class }
                     .set(path)
             }

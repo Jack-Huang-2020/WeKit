@@ -3,9 +3,10 @@ package dev.ujhhgtg.wekit.hooks.items.chat
 import android.app.Activity
 import android.view.View
 import androidx.compose.material3.Text
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.hooks.api.net.models.protobuf.FavInfoProto
+import dev.ujhhgtg.wekit.hooks.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
@@ -18,7 +19,7 @@ import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.getTopMostActivity
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.coerceToInt
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -30,17 +31,17 @@ object ForwardFavoriteVoices : SwitchHookItem() {
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun onEnable() {
-        "com.tencent.mm.plugin.fav.ui.FavSelectUI".toClass().asResolver().firstMethod { name = "onItemClick" }
+        "com.tencent.mm.plugin.fav.ui.FavSelectUI".toClass().reflekt().firstMethod { name = "onItemClick" }
         .hookBefore {
             val view = args[1] as View
             val tag = view.tag
 
-            val a = tag.asResolver().firstField { name = "a"; superclass() }.get()!!
-            val type = a.asResolver().firstField { name = "field_type"; superclass() }.get()!! as Int
+            val a = tag.reflekt().firstField { name = "a"; superclass() }.get()!!
+            val type = a.reflekt().firstField { name = "field_type"; superclass() }.get()!! as Int
             if (type != 3) return@hookBefore
 
-            val favPhoto = a.asResolver().firstField { name = "field_favProto"; superclass() }.get()!!
-            val bytes = favPhoto.asResolver().firstMethod { name = "getData"; superclass() }.invoke()!! as ByteArray
+            val favPhoto = a.reflekt().firstField { name = "field_favProto"; superclass() }.get()!!
+            val bytes = favPhoto.reflekt().firstMethod { name = "getData"; superclass() }.invoke()!! as ByteArray
 
             val favInfo = ProtoBuf.decodeFromByteArray<FavInfoProto>(bytes)
             val voiceInfo = favInfo.voiceInfo
@@ -69,7 +70,7 @@ object ForwardFavoriteVoices : SwitchHookItem() {
                             showToast(ctx, "已复制")
                         }) { Text("复制") }
                         Button({
-                            WeMessageApi.sendVoice(ChatInputBarEnhancements.currentConv, voiceFilePath, AudioUtils.getDurationMs(voiceFilePath).coerceToInt())
+                            WeMessageApi.sendVoice(WeCurrentConversationApi.value, voiceFilePath, AudioUtils.getDurationMs(voiceFilePath).coerceToInt())
                             showToast(ctx, "已发送")
                             onDismiss()
                             getTopMostActivity()?.finish()

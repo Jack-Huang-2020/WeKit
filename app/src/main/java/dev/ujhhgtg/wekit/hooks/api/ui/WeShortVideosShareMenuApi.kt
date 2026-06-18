@@ -3,17 +3,17 @@ package dev.ujhhgtg.wekit.hooks.api.ui
 import android.graphics.drawable.Drawable
 import android.view.ContextMenu
 import de.robv.android.xposed.XC_MethodHook
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.json.JSONObject
 import org.luckypray.dexkit.DexKitBridge
 import java.util.LinkedList
 
 @HookItem(name = "视频号分享菜单扩展", categories = ["API"], description = "为视频号分享菜单提供添加菜单项功能")
-object WeShortVideosShareMenuApi : ApiHookItem(), IResolvesDex {
+object WeShortVideosShareMenuApi : ApiHookItem(), IResolveDex {
 
     interface IMenuItemsProvider {
         fun getMenuItems(): List<MenuItem>
@@ -48,7 +48,7 @@ object WeShortVideosShareMenuApi : ApiHookItem(), IResolvesDex {
 
         methodOnSelectMenuItem1.hookBefore {
             val menuItem = args[0] as android.view.MenuItem
-            val baseFinderFeed = thisObject.asResolver()
+            val baseFinderFeed = thisObject.reflekt()
                 .firstField {
                     type = "com.tencent.mm.plugin.finder.model.BaseFinderFeed"
                 }
@@ -72,7 +72,7 @@ object WeShortVideosShareMenuApi : ApiHookItem(), IResolvesDex {
         menu: ContextMenu
     ) {
         for (item in menuItems.values.flatten()) {
-            menu.asResolver()
+            menu.reflekt()
                 .firstMethod {
                     parameters(Int::class, CharSequence::class, Drawable::class)
                 }
@@ -86,24 +86,24 @@ object WeShortVideosShareMenuApi : ApiHookItem(), IResolvesDex {
         baseFinderFeed: Any
     ) {
         val itemId = menuItem.itemId
-        val finderItem = baseFinderFeed.asResolver()
+        val finderItem = baseFinderFeed.reflekt()
             .firstField {
                 name = "feedObject"
                 superclass()
             }
             .get()!!
-        val mediaType = finderItem.asResolver()
+        val mediaType = finderItem.reflekt()
             .firstMethod {
                 name = "getMediaType"
             }
             .invoke()!! as Int
-        val mediaList = finderItem.asResolver()
+        val mediaList = finderItem.reflekt()
             .firstMethod {
                 name = "getMediaList"
             }
             .invoke() as LinkedList<*>
         val mediaJsonList = mediaList.map { media ->
-            media.asResolver()
+            media.reflekt()
                 .firstMethod {
                     name = "toJSON"
                     superclass()

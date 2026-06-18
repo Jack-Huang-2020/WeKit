@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.hooks.api.net
 
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
 import dev.ujhhgtg.wekit.hooks.api.net.MsgIdPreviewer.generateClientMsgId
 import dev.ujhhgtg.wekit.hooks.api.net.MsgIdPreviewer.previewNextId

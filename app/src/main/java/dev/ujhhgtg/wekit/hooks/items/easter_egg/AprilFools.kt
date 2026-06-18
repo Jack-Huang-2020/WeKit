@@ -10,15 +10,14 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.TextView
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.toClass
 import com.tencent.mm.ui.base.NoMeasuredTextView
 import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.TargetProcesses
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import java.lang.reflect.Field
 import java.time.LocalDate
 import java.time.Month
@@ -55,28 +54,28 @@ object AprilFools : BaseHookItem() {
     )
 
     override fun onEnable() {
-        ImageView::class.resolve()
+        ImageView::class.reflekt()
             .firstConstructor { parameterCount = 4 }.hookAfter {
                 applyRotation(thisObject as View)
             }
 
-        "com.tencent.mm.ui.widget.QImageView".toClass().resolve()
+        "com.tencent.mm.ui.widget.QImageView".toClass().reflekt()
             .firstConstructor().hookAfter {
                 applyRotation(thisObject as View)
             }
 
-        TextView::class.resolve().firstMethod { name = "onDraw" }.hookBefore {
+        TextView::class.reflekt().firstMethod { name = "onDraw" }.hookBefore {
             val tv = thisObject as TextView
             applyRainbowEffect(tv, tv.text, tv.paint)
         }
 
-        NoMeasuredTextView::class.resolve()
+        NoMeasuredTextView::class.reflekt()
             .firstMethod { name = "onDraw" }.hookBefore {
                 val view = thisObject as View
 
                 if (!::noMeasuredTvTextProp.isInitialized) {
-                    noMeasuredTvTextProp = view.asResolver().firstField { name = "mText" }.self.makeAccessible()
-                    noMeasuredTvPaintProp = view.asResolver().firstField { type = TextPaint::class }.self.makeAccessible()
+                    noMeasuredTvTextProp = view.reflekt().firstField { name = "mText" }.self.makeAccessible()
+                    noMeasuredTvPaintProp = view.reflekt().firstField { type = TextPaint::class }.self.makeAccessible()
                 }
 
                 applyRainbowEffect(

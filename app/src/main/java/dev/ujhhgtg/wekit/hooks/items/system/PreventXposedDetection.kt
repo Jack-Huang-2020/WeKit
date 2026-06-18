@@ -2,7 +2,7 @@ package dev.ujhhgtg.wekit.hooks.items.system
 
 import android.content.Context
 import androidx.compose.material3.Text
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -12,7 +12,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.HostInfo
 
 @HookItem(name = "禁止微信检测 Xposed", categories = ["系统与隐私"], description = "防止微信检测 Xposed 框架是否存在")
-object PreventXposedDetection : SwitchHookItem(), IResolvesDex {
+object PreventXposedDetection : SwitchHookItem(), IResolveDex {
 
     private val methodCheckStackTraceElements by dexMethod(allowFailure = true) {
         searchPackages("com.tencent.mm.app")

@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.dexkit
 
-import dev.ujhhgtg.wekit.utils.reflection.isPrivate
-import dev.ujhhgtg.wekit.utils.reflection.isStatic
+import dev.ujhhgtg.reflekt.utils.isPrivate
+import dev.ujhhgtg.reflekt.utils.isStatic
 import java.io.Serializable
 import java.lang.reflect.Constructor
 import java.lang.reflect.Method

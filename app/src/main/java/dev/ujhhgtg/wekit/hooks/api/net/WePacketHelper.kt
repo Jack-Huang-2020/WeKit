@@ -3,12 +3,12 @@ package dev.ujhhgtg.wekit.hooks.api.net
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
-import com.highcapable.kavaref.extension.createInstance
-import com.highcapable.kavaref.extension.isSubclassOf
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
+import dev.ujhhgtg.reflekt.utils.toClass
 import de.robv.android.xposed.XposedHelpers
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.net.abc.WeRequestCallback
@@ -17,8 +17,8 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
 import dev.ujhhgtg.wekit.utils.reflection.bool
-import dev.ujhhgtg.wekit.utils.reflection.isBuiltin
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.utils.isBuiltin
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,7 +32,7 @@ import java.lang.reflect.Modifier
 import java.lang.reflect.Proxy
 
 @HookItem(name = "网络数据包服务", categories = ["API"])
-object WePacketHelper : ApiHookItem(), IResolvesDex {
+object WePacketHelper : ApiHookItem(), IResolveDex {
 
     // 核心 Protobuf 类
     private val classProtoBase by dexClass()

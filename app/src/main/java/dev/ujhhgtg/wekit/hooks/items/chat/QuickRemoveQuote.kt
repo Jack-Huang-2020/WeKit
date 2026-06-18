@@ -2,16 +2,16 @@ package dev.ujhhgtg.wekit.hooks.items.chat
 
 import android.view.KeyEvent
 import com.tencent.mm.pluginsdk.ui.chat.ChatFooter
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 
 @HookItem(name = "快捷清除引用", categories = ["聊天"], description = "在输入退格时若输入框无文字自动清除引用")
-object QuickRemoveQuote : SwitchHookItem(), IResolvesDex {
+object QuickRemoveQuote : SwitchHookItem(), IResolveDex {
 
     private val methodSupportAutoCompleteOnKey by dexMethod()
     private val methodShowMsgQuoteContainer by dexMethod()
@@ -25,7 +25,7 @@ object QuickRemoveQuote : SwitchHookItem(), IResolvesDex {
             if (keyEvent.keyCode != 67 || keyEvent.action != 0) return@hookBefore
 
             if (!::chatFooterHelperField.isInitialized) {
-                chatFooterHelperField = thisObject.asResolver()
+                chatFooterHelperField = thisObject.reflekt()
                     .firstField {
                         type { clazz -> clazz.name.startsWith("com.tencent.mm.pluginsdk.ui.chat.") }
                     }.self
@@ -33,7 +33,7 @@ object QuickRemoveQuote : SwitchHookItem(), IResolvesDex {
             val chatFooterHelper = chatFooterHelperField.get(thisObject)
 
             if (!::chatFooterField.isInitialized) {
-                chatFooterField = chatFooterHelper.asResolver()
+                chatFooterField = chatFooterHelper.reflekt()
                     .firstField {
                         type = "com.tencent.mm.pluginsdk.ui.chat.ChatFooter"
                     }.self

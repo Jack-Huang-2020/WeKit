@@ -99,5 +99,6 @@ include(":app",
     ":libs:external:comptime-kt:api",
     ":libs:common:libxposed-api",
     ":libs:common:stubs",
-    ":libs:common:bsh"
+    ":libs:common:bsh",
+    ":libs:common:reflekt"
 )

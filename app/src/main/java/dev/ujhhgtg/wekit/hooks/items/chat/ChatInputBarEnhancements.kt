@@ -38,6 +38,7 @@ import dev.ujhhgtg.wekit.hooks.api.core.WeApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.hooks.api.net.WePacketHelper
+import dev.ujhhgtg.wekit.hooks.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
@@ -53,7 +54,7 @@ import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import dev.ujhhgtg.wekit.utils.coerceToInt
 import dev.ujhhgtg.wekit.utils.fileExtension
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,11 +70,9 @@ import android.widget.Button as AndroidButton
 @HookItem(name = "聊天输入栏增强", categories = ["聊天"], description = "为聊天输入栏添加更多功能\n1. 在聊天界面长按「发送」或「加号菜单」按钮打开菜单\n菜单功能: 「发送卡片消息」「@所有人」\n2. 长按「语音」按钮发送自定义语音文件 (SILK 或 MP3)")
 object ChatInputBarEnhancements : SwitchHookItem() {
 
-    lateinit var currentConv: String
-
     override fun onEnable() {
-        ChatFooter::class.resolve().apply {
-            firstConstructor {
+        ChatFooter::class.reflekt()
+            .firstConstructor {
                 parameters(Context::class, AttributeSet::class, Int::class)
             }.hookAfter {
                 val chatFooter = thisObject as ChatFooter
@@ -91,7 +90,7 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                 }!!
 
                 voiceButton.setOnLongClickListener { view ->
-                    selectAndSendVoice(view.context, currentConv)
+                    selectAndSendVoice(view.context, WeCurrentConversationApi.value)
                     return@setOnLongClickListener true
                 }
 
@@ -109,7 +108,7 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                                             label = "发送语音文件"
                                         ) {
                                             onDismiss()
-                                            selectAndSendVoice(context, currentConv)
+                                            selectAndSendVoice(context, WeCurrentConversationApi.value)
                                         }
 
                                         ActionItem(
@@ -117,7 +116,7 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                                             label = "发送卡片消息"
                                         ) {
                                             onDismiss()
-                                            val currentConv = currentConv
+                                            val currentConv = WeCurrentConversationApi.value
                                             val content = chatFooter.lastText
 
                                             if (content.isEmpty()) {
@@ -140,13 +139,13 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                                         ) {
                                             onDismiss()
 
-                                            if (!currentConv.endsWith("@chatroom")) {
+                                            if (!WeCurrentConversationApi.value.endsWith("@chatroom")) {
                                                 showToast("只能在群组里使用!")
                                                 return@ActionItem
                                             }
 
                                             val contacts = WeDatabaseApi
-                                                .getGroupMembers(currentConv)
+                                                .getGroupMembers(WeCurrentConversationApi.value)
                                                 .filter { c -> c.wxId != WeApi.selfWxId }
                                             val content = chatFooter.lastText
 
@@ -154,7 +153,7 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                                                 put("1", 1)
                                                 putJsonObject("2") {
                                                     putJsonObject("1") {
-                                                        put("1", currentConv)
+                                                        put("1", WeCurrentConversationApi.value)
                                                     }
                                                     put("2", contacts.joinToString("") { c ->
                                                         "@${c.nickname} "
@@ -178,18 +177,10 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                                                 reqBody.toString()
                                             ) {
                                                 onSuccess { _, _ ->
-                                                    showToast("已发送! (自己无法看到该消息)")
+                                                    showToast("已发送 (自己无法看到该消息)")
                                                 }
                                             }
                                         }
-
-                                        // TODO
-//                                            ActionItem(
-//                                                icon = MaterialSymbols.Outlined.Bomb,
-//                                                label = "发送闪退贴纸表情",
-//                                            ) {
-//
-//                                            }
                                     }
                                 })
                         }
@@ -197,16 +188,6 @@ object ChatInputBarEnhancements : SwitchHookItem() {
                     }
                 }
             }
-
-            firstMethod {
-                name = "setUserName"
-            }.hookAfter {
-                val conv = args[0] as? String
-                if (!conv.isNullOrEmpty()) {
-                    currentConv = conv
-                }
-            }
-        }
     }
 }
 

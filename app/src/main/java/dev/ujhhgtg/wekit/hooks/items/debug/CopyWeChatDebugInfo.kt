@@ -3,26 +3,25 @@ package dev.ujhhgtg.wekit.hooks.items.debug
 import android.content.Context
 import android.view.View
 import android.widget.TextView
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import com.tencent.mm.plugin.setting.ui.setting.SettingsAboutMMHeaderPreference
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "复制调试信息", categories = ["调试"], description = "在报告模块问题时, 请附上本功能的结果")
-object CopyWeChatDebugInfo : ClickableHookItem(), IResolvesDex {
+object CopyWeChatDebugInfo : ClickableHookItem(), IResolveDex {
 
     override val noSwitchWidget = true
 
     override fun onClick(context: Context) {
-        val unhook = TextView::class.resolve()
+        val unhook = TextView::class.reflekt()
             .firstMethod {
                 name = "setText"
                 parameters(CharSequence::class)
@@ -42,7 +41,7 @@ object CopyWeChatDebugInfo : ClickableHookItem(), IResolvesDex {
         //            this.f158935d = jCurrentTimeMillis;
         //            return;
         //        }
-        onClickListener.asResolver()
+        onClickListener.reflekt()
             .firstField {
                 type = Long::class
             }.set(System.currentTimeMillis())

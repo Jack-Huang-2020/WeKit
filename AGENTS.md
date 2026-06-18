@@ -22,7 +22,7 @@
 - `build-logic` - parser generator only used by the BeanShell fork
 - `libs/common/stubs/` — compileOnly stubs for WeChat and Android hidden classes
 - `libs/external/comptime-kt/` — submodule: compile-time reflection utility
-- `buildSrc/` — custom Gradle tasks: `GenerateMethodHashesTask` (`IResolvesDex` `resolveDex` method MD5 cache), `ConfigureCargoTask` (Rust NDK linker config)
+- `buildSrc/` — custom Gradle tasks: `GenerateMethodHashesTask` (`IResolveDex` `resolveDex` method MD5 cache), `ConfigureCargoTask` (Rust NDK linker config)
 
 ## Entry Points & Architecture
 
@@ -30,7 +30,7 @@
 - Unified flow: `UnifiedEntryPoint.entry()` → `StartupAgent.startup()` → `WeLauncher.init()`
 - Hook items annotated with `@HookItem(path, description)`, auto-discovered by KSP annotation scanner at compile time
 - Base classes: `SwitchHookItem` (toggle on/off), `ClickableHookItem` (toggle on/off with onClick event), `ApiHookItem` (always-on), `BaseHookItem` (abstract base, do not use directly)
-- DEX analysis via DexKit with `IResolvesDex` interface; method resolve body MD5-hashed for cache (
+- DEX analysis via DexKit with `IResolveDex` interface; method resolve body MD5-hashed for cache (
   `GenerateMethodHashesTask`)
 - DEX-resolved targets DSL: `val methodTarget by dexMethod()` `val classTarget by dexClass()` delegate → `methodTarget.hookBefore { ... }`, `val method: Method = methodTarget.method`, `val clazz = classTarget.clazz`
 - UI: Jetpack Compose + Material 3, dialogs written using `showComposeDialog` and `AlertDialogContent`

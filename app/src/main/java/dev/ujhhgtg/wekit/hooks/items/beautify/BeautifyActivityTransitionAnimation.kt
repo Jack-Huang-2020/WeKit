@@ -10,7 +10,7 @@ import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 
 @HookItem(name = "美化活动过渡动画", categories = ["界面美化"], description = "将部分活动过渡动画替换为默认过渡或元素级共享动画 (没做完)")
@@ -25,7 +25,7 @@ object BeautifyActivityTransitionAnimation : SwitchHookItem() {
 
     override fun onEnable() {
         // sender
-        View::class.resolve()
+        View::class.reflekt()
             .firstMethod {
                 name = "performClick"
             }
@@ -42,7 +42,7 @@ object BeautifyActivityTransitionAnimation : SwitchHookItem() {
             }
 
         // receiver
-        Activity::class.resolve()
+        Activity::class.reflekt()
             .firstMethod {
                 name = "onPostCreate"
             }
@@ -85,7 +85,7 @@ object BeautifyActivityTransitionAnimation : SwitchHookItem() {
                 }
             }
 
-        Activity::class.resolve()
+        Activity::class.reflekt()
             .firstMethod {
                 name = "overridePendingTransition"
                 parameterCount = 3

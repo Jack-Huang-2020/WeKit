@@ -2,7 +2,7 @@ package dev.ujhhgtg.wekit.hooks.items.profile
 
 import android.graphics.Bitmap
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -10,7 +10,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "上传透明头像", categories = ["个人资料"], description = "头像上传时使用 PNG 格式保持透明")
-object UploadTransparentAvatars : SwitchHookItem(), IResolvesDex {
+object UploadTransparentAvatars : SwitchHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 

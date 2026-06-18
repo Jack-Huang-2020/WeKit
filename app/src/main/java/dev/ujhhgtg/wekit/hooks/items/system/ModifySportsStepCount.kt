@@ -7,8 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.highcapable.kavaref.extension.createInstance
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -21,7 +21,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "修改运动步数", categories = ["系统与隐私"], description = "修改微信获取到的或手动上传运动步数")
-object ModifySportsStepCount : ClickableHookItem(), IResolvesDex {
+object ModifySportsStepCount : ClickableHookItem(), IResolveDex {
 
     private val methodGetSteps by dexMethod()
     private val methodUploadSteps by dexMethod()

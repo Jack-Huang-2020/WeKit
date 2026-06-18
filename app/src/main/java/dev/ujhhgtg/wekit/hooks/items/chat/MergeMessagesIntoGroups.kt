@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.hooks.api.core.models.MessageType
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import java.lang.reflect.Field
 
 @HookItem(name = "合并消息显示", categories = ["聊天"], description = "将同一发送者的连续多条消息合并为一组消息显示 (Telegram 风格)")
@@ -32,15 +32,15 @@ object MergeMessagesIntoGroups : SwitchHookItem(), WeChatMessageViewApi.ICreateV
 
     private fun ensureFields(tag: Any) {
         if (!::avatarField.isInitialized) {
-            avatarField = tag.asResolver()
+            avatarField = tag.reflekt()
                 .firstField { name = "avatarIV"; superclass() }.self
         }
         if (!::displayNameField.isInitialized) {
-            displayNameField = tag.asResolver()
+            displayNameField = tag.reflekt()
                 .firstField { name = "userTV"; superclass() }.self
         }
         if (!::timeField.isInitialized) {
-            timeField = tag.asResolver()
+            timeField = tag.reflekt()
                 .firstField { name = "timeTV"; superclass() }.self
         }
     }
@@ -70,7 +70,7 @@ object MergeMessagesIntoGroups : SwitchHookItem(), WeChatMessageViewApi.ICreateV
         val currentSender = msgInfo.sender
         val position = param.args[2] as Int
 
-        val adapter = param.thisObject.asResolver()
+        val adapter = param.thisObject.reflekt()
             .firstField { type = WeMessageApi.classChattingDataAdapter.clazz }
             .get() ?: return
 
@@ -108,7 +108,7 @@ object MergeMessagesIntoGroups : SwitchHookItem(), WeChatMessageViewApi.ICreateV
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private fun senderAt(adapter: Any, position: Int): String? = runCatching {
-        val raw = adapter.asResolver()
+        val raw = adapter.reflekt()
             .firstMethod { name = "getItem" }
             .invoke(position) ?: return null
         MessageInfo(raw).sender

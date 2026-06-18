@@ -1,20 +1,20 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "禁止上传正在输入状态", categories = ["聊天"], description = "禁止微信上传「对方正在输入」状态")
-object DisableTypingStatusUploading : SwitchHookItem(), IResolvesDex {
+object DisableTypingStatusUploading : SwitchHookItem(), IResolveDex {
 
     private val classMmTypingSendReq by dexClass()
 
     override fun onEnable() {
         if (classMmTypingSendReq.isPlaceholder) return
 
-        classMmTypingSendReq.asResolver().firstMethod { name = "doScene" }
+        classMmTypingSendReq.reflekt().firstMethod { name = "doScene" }
             .hookBefore {
                 result = -1
             }

@@ -28,10 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.highcapable.kavaref.extension.createInstance
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.createInstance
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -45,7 +45,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,7 +53,7 @@ import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
 @HookItem(name = "灰度测试管理器", categories = ["系统与隐私"], description = "覆盖微信灰度测试 (Feature Flag) 的值")
-object FeatureFlagManager : ClickableHookItem(), IResolvesDex {
+object FeatureFlagManager : ClickableHookItem(), IResolveDex {
 
     private val TAG = nameOf(FeatureFlagManager)
 
@@ -274,8 +274,8 @@ object FeatureFlagManager : ClickableHookItem(), IResolvesDex {
                                                 val flagInstance =
                                                     className.toClass().createInstance()
                                                 flagInstance
-                                                    .asResolver()
-                                                    .method {
+                                                    .reflekt()
+                                                    .methods {
                                                         returnType = String::class
                                                     }.apply {
                                                         internalName = this[0].invoke()!! as String

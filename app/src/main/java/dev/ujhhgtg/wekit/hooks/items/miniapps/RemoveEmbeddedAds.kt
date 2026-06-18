@@ -1,18 +1,18 @@
 package dev.ujhhgtg.wekit.hooks.items.miniapps
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.isBuiltin
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.isBuiltin
 import org.json.JSONObject
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 
 @HookItem(name = "移除嵌入广告", categories = ["小程序"], description = "移除小程序嵌入广告")
-object RemoveEmbeddedAds : SwitchHookItem(), IResolvesDex {
+object RemoveEmbeddedAds : SwitchHookItem(), IResolveDex {
 
     private val ctorNetSceneJSOperateWxData by dexConstructor()
     private val methodBaseTransferRequestOnLoad by dexMethod()
@@ -31,15 +31,15 @@ object RemoveEmbeddedAds : SwitchHookItem(), IResolvesDex {
         methodBaseTransferRequestOnLoad.hookBefore {
             val transferResultInfo = args[0]
             if (!::protoField.isInitialized) {
-                protoField = transferResultInfo.asResolver()
+                protoField = transferResultInfo.reflekt()
                     .firstField {
                         type { !it.isBuiltin }
                     }.self
             }
 
             val proto = protoField.get(transferResultInfo)
-            proto.asResolver()
-                .field {
+            proto.reflekt()
+                .fields {
                     type = String::class
                 }.forEach {
                     val jsonStr = it.get() as? String? ?: return@forEach

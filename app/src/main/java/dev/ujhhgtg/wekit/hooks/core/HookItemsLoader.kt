@@ -3,7 +3,7 @@ package dev.ujhhgtg.wekit.hooks.core
 import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.Preferences
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager
 import dev.ujhhgtg.wekit.ui.content.DexResolver
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
@@ -28,7 +28,7 @@ object HookItemsLoader {
 
     fun loadHookItems() {
         val allHookItems = HookItemsProvider.ALL_HOOK_ITEMS
-        val allDexItems = allHookItems.filterIsInstance<IResolvesDex>()
+        val allDexItems = allHookItems.filterIsInstance<IResolveDex>()
 
         val outdatedItems = DexCacheManager.getOutdatedItems(allDexItems)
         val validItems = allDexItems - outdatedItems.toSet()
@@ -46,7 +46,7 @@ object HookItemsLoader {
 
         val elapsed = measureTime {
             allHookItems.forEach { hookItem ->
-                val isBroken = hookItem is IResolvesDex && allBrokenItems.contains(hookItem)
+                val isBroken = hookItem is IResolveDex && allBrokenItems.contains(hookItem)
 
                 if (isBroken) {
                     // A partially-loaded item: delegates that loaded from cache are usable,
@@ -74,8 +74,8 @@ object HookItemsLoader {
      * - 有任意 key 缺失的 item 加入返回列表，等待 DexKit 重新扫描。
      * - 缓存文件整体读取失败 → 删除损坏文件，整个 item 加入返回列表。
      */
-    private fun loadDescriptorsFromCache(items: List<IResolvesDex>): List<IResolvesDex> {
-        val failedItems = mutableListOf<IResolvesDex>()
+    private fun loadDescriptorsFromCache(items: List<IResolveDex>): List<IResolveDex> {
+        val failedItems = mutableListOf<IResolveDex>()
 
         for (item in items) {
             val path = (item as BaseHookItem).displayName
@@ -107,7 +107,7 @@ object HookItemsLoader {
         return failedItems
     }
 
-    private fun handleBrokenItems(brokenItems: List<IResolvesDex>) {
+    private fun handleBrokenItems(brokenItems: List<IResolveDex>) {
         if (Preferences.noDexResolve) return
         if (!TargetProcesses.isInMain) return
 

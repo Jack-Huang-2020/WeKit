@@ -1,12 +1,12 @@
 package dev.ujhhgtg.wekit.dexkit.dsl
 
-import com.highcapable.kavaref.extension.toClassOrNull
 import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.toClassOrNull
 import dev.ujhhgtg.wekit.dexkit.DexMethodDescriptor
 import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
@@ -56,7 +56,7 @@ class DexClassDelegate internal constructor(
         }
 
     @Suppress("NOTHING_TO_INLINE")
-    inline fun asResolver() = clazz.asResolver()
+    inline fun reflekt() = clazz.reflekt()
 
     fun setDescriptor(className: String) {
         descriptorString = className
@@ -136,8 +136,8 @@ class DexMethodDelegate internal constructor(
             return cachedMethod ?: error("Method not found for key: $key")
         }
 
-    @Deprecated("You shouldn't call .asResolver() on a Method", level = DeprecationLevel.ERROR)
-    fun asResolver(): Nothing = error("You shouldn't call .asResolver() on a Method")
+    @Deprecated("You shouldn't call .reflekt() on a Method", level = DeprecationLevel.ERROR)
+    fun reflekt(): Nothing = error("You shouldn't call .reflekt() on a Method")
 
     fun setDescriptor(desc: DexMethodDescriptor) {
         descriptor = desc
@@ -226,8 +226,8 @@ class DexConstructorDelegate internal constructor(
             return cachedConstructor ?: error("Constructor not found for key: $key")
         }
 
-    @Deprecated("You shouldn't call .asResolver() on a Constructor", level = DeprecationLevel.ERROR)
-    fun asResolver(): Nothing = error("You shouldn't call .asResolver() on a Constructor")
+    @Deprecated("You shouldn't call .reflekt() on a Constructor", level = DeprecationLevel.ERROR)
+    fun reflekt(): Nothing = error("You shouldn't call .reflekt() on a Constructor")
 
     fun newInstance(vararg initArgs: Any?): Any = constructor.newInstance(*initArgs)
 

@@ -1,9 +1,9 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
-import com.highcapable.kavaref.condition.type.Modifiers
+import dev.ujhhgtg.reflekt.utils.Modifiers
 import com.tencent.mm.plugin.gif.MMWXGFJNI
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageContextMenuApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -12,7 +12,7 @@ import dev.ujhhgtg.wekit.ui.utils.DownloadIcon
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +21,7 @@ import kotlin.io.path.div
 import kotlin.io.path.outputStream
 
 @HookItem(name = "贴纸保存到本地", categories = ["聊天"], description = "在贴纸消息菜单添加保存按钮, 允许将图片保存到本地")
-object SaveStickersToLocalStorage : SwitchHookItem(), IResolvesDex,
+object SaveStickersToLocalStorage : SwitchHookItem(), IResolveDex,
     WeChatMessageContextMenuApi.IMenuItemsProvider {
 
     private val TAG = This.Class.simpleName
@@ -62,13 +62,13 @@ object SaveStickersToLocalStorage : SwitchHookItem(), IResolvesDex,
             ) { _, _, msgInfo ->
                 val md5 = msgInfo.imagePath
                 val emojiInfo = StickersSync.getEmojiInfoByMd5(md5)
-                val emojiFileEncryptMgr = classEmojiFileEncryptMgr.asResolver()
+                val emojiFileEncryptMgr = classEmojiFileEncryptMgr.reflekt()
                     .firstMethod {
-                        modifiers(Modifiers.STATIC)
+                        modifiers { it.contains(Modifiers.STATIC) }
                         parameterCount = 0
                     }
                     .invoke()!!
-                var bytes = emojiFileEncryptMgr.asResolver()
+                var bytes = emojiFileEncryptMgr.reflekt()
                     .firstMethod {
                         parameters("com.tencent.mm.api.IEmojiInfo")
                         returnType = ByteArray::class

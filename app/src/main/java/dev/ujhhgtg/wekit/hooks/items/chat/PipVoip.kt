@@ -4,17 +4,16 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.PackageNames
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "音视频聊天使用画中画", categories = ["聊天"], description = "让微信的音视频聊天使用原生的画中画模式而非悬浮窗 (没写完)")
-object PipVoip : SwitchHookItem(), IResolvesDex {
+object PipVoip : SwitchHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 
@@ -39,7 +38,7 @@ object PipVoip : SwitchHookItem(), IResolvesDex {
 //                val handler = InvocationHandler { _, method, args ->
 //                    WeLogger.d(TAG, "method ${method.name} invoked on StubActivityProxy with ${args.size} argument(s)\n")
 //                    return@InvocationHandler runCatching {
-//                        originalActivityProxyInstance.asResolver()
+//                        originalActivityProxyInstance.reflekt()
 //                            .firstMethod {
 //                                name = method.name
 //                                superclass()
@@ -52,14 +51,14 @@ object PipVoip : SwitchHookItem(), IResolvesDex {
 //            result = stubActivityProxyInstance
 //        }
 
-        classVoipActivityProxy.asResolver()
+        classVoipActivityProxy.reflekt()
             .firstMethod {
                 name = "dealContentView"
             }.hookBefore {
                 WeLogger.d(TAG, "dealContentView: ${args[0].javaClass}")
             }
 
-        ActivityInfo::class.resolve()
+        ActivityInfo::class.reflekt()
             .firstConstructor()
             .hookAfter {
                 val info = thisObject as ActivityInfo
@@ -67,7 +66,7 @@ object PipVoip : SwitchHookItem(), IResolvesDex {
                     applyFlags(info)
             }
 
-        Activity::class.resolve()
+        Activity::class.reflekt()
             .firstMethod {
                 name = "onPictureInPictureModeChanged"
                 parameterCount = 2
@@ -88,7 +87,7 @@ object PipVoip : SwitchHookItem(), IResolvesDex {
         flags = flags or FLAG_SUPPORTS_PICTURE_IN_PICTURE
         info.flags = flags
 
-        info.asResolver()
+        info.reflekt()
             .firstField { name = "resizeMode" }
             .set(RESIZE_MODE_RESIZEABLE)
     }

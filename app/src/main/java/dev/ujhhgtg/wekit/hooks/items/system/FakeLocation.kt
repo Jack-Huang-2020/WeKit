@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.hooks.items.system
 
 import android.content.Context
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -9,11 +9,11 @@ import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.OsmLocationPicker
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.android.showToast
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "虚拟定位", categories = ["系统与隐私"], description = "预设定微信获取到的经纬度")
-object FakeLocation : ClickableHookItem(), IResolvesDex {
+object FakeLocation : ClickableHookItem(), IResolveDex {
 
     private val methodListener by dexMethod()
     private val methodListenerWgs84 by dexMethod()
@@ -26,7 +26,7 @@ object FakeLocation : ClickableHookItem(), IResolvesDex {
         listOf(methodListener, methodListenerWgs84, methodDefaultManager).forEach {
             it.hookBefore {
                 val tencentLocation = args[0]
-                tencentLocation::class.resolve().apply {
+                tencentLocation::class.reflekt().apply {
                     firstMethod {
                         name = "getLatitude"
                     }.hookBefore {

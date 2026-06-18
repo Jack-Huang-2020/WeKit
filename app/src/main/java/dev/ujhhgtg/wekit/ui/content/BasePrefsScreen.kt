@@ -298,7 +298,7 @@ abstract class BasePrefsScreen(private val title: String) {
 //                onResume = {
                     // fix up Jetpack Compose
                     // come on Google why tf do you choose to use Resources here??
-//                    getStringUnhook = Resources::class.asResolver().firstMethod { name = "getString"; parameters(int) }.hookBeforeDirectly {
+//                    getStringUnhook = Resources::class.reflekt().firstMethod { name = "getString"; parameters(int) }.hookBeforeDirectly {
                         // FIXME: no this is not a FIXME this is FIXYOURFUCKINGAISLOPGOOGLE
                         // if I set this to "", it sometimes triggers 'shortLabel cannot be empty'.
                         // if I set this to a non-empty string, it triggers a cryptic 'android.view.InputEventCompatProcessor.processInputEventForCompatibility(android.view.InputEvent)' NPE.

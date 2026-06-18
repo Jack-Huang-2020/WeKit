@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageContextMenuApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -13,7 +14,6 @@ import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.EditIcon
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 
 @HookItem(name = "修改文本消息显示", categories = ["聊天"], description = "向消息长按菜单添加菜单项, 可修改本地消息显示内容")
 object ModifyTextMessageDisplay : SwitchHookItem(),
@@ -38,11 +38,11 @@ object ModifyTextMessageDisplay : SwitchHookItem(),
                 showComposeDialog(view.context) {
                     var input by remember {
                         mutableStateOf(
-                            view.asResolver()
+                            view.reflekt()
                                 .firstField {
                                     type = CharSequence::class
                                     superclass()
-                                }.get<CharSequence>().toString()
+                                }.get().toString()
                         )
                     }
 
@@ -56,7 +56,7 @@ object ModifyTextMessageDisplay : SwitchHookItem(),
                         },
                         confirmButton = {
                             TextButton(onClick = {
-                                view.asResolver()
+                                view.reflekt()
                                     .firstMethod {
                                         parameters(CharSequence::class)
                                     }

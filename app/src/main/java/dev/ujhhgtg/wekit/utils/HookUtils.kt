@@ -1,18 +1,18 @@
 package dev.ujhhgtg.wekit.utils
 
-import com.highcapable.kavaref.resolver.MethodResolver
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
+import dev.ujhhgtg.reflekt.reflected.BaseReflectedMethod
 import java.lang.reflect.Executable
 
 typealias HookAction = XC_MethodHook.MethodHookParam.() -> Unit
 
 // most extension methods are inside BaseHookItem for enabled state checking
 
-inline fun MethodResolver<*>.hookBeforeDirectly(
+inline fun BaseReflectedMethod.hookBeforeDirectly(
     priority: Int = 50,
     crossinline action: HookAction
-) = this.self.hookBeforeDirectly(priority, action)
+) = self.hookBeforeDirectly(priority, action)
 
 inline fun Executable.hookBeforeDirectly(
     priority: Int = 50,
@@ -25,10 +25,10 @@ inline fun Executable.hookBeforeDirectly(
     }
 )
 
-inline fun MethodResolver<*>.hookAfterDirectly(
+inline fun BaseReflectedMethod.hookAfterDirectly(
     priority: Int = 50,
     crossinline action: HookAction
-): XC_MethodHook.Unhook = this.self.hookAfterDirectly(priority, action)
+): XC_MethodHook.Unhook = self.hookAfterDirectly(priority, action)
 
 inline fun Executable.hookAfterDirectly(
     priority: Int = 50,

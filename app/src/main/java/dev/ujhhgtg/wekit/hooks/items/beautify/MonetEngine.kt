@@ -12,7 +12,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.compose.material3.Text
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -22,8 +22,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.isDarkMode
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 @HookItem(name = "莫奈引擎", categories = ["界面美化"], description = "为微信的部分组件启用动态壁纸取色 [需 SDK >= 31]")
 object MonetEngine : ClickableHookItem() {
@@ -66,8 +65,8 @@ object MonetEngine : ClickableHookItem() {
 
         "com.tencent.mm.ui.widget.MMSwitchBtn".toClass().constructors.forEach {
             it.hookAfter {
-                thisObject.asResolver()
-                    .field {
+                thisObject.reflekt()
+                    .fields {
                         type = Int::class
                         superclass()
                     }.forEach { field ->
@@ -77,7 +76,7 @@ object MonetEngine : ClickableHookItem() {
             }
         }
 
-        Paint::class.resolve()
+        Paint::class.reflekt()
             .firstMethod { name = "setColor" }
             .hookBefore {
                 val color = args[0] as Int
@@ -85,7 +84,7 @@ object MonetEngine : ClickableHookItem() {
                 args[0] = ON_PRIMARY
             }
 
-        TextView::class.resolve()
+        TextView::class.reflekt()
             .firstMethod { name = "onAttachedToWindow" }.hookAfter {
                 val editText = thisObject as? EditText? ?: return@hookAfter
                 editText.apply {
@@ -104,7 +103,7 @@ object MonetEngine : ClickableHookItem() {
                 }
             }
 
-        View::class.resolve().firstMethod { name = "setBackgroundDrawable" }.hookBefore {
+        View::class.reflekt().firstMethod { name = "setBackgroundDrawable" }.hookBefore {
             val drawable = args[0] as? Drawable? ?: return@hookBefore
             if (drawable is ColorDrawable) {
                 val color = drawable.color
@@ -113,7 +112,7 @@ object MonetEngine : ClickableHookItem() {
         }
 
         // FIXME: probably a bit inefficient
-        View::class.resolve().firstMethod { name = "onFinishInflate" }.hookAfter {
+        View::class.reflekt().firstMethod { name = "onFinishInflate" }.hookAfter {
             val view = thisObject as View
             if (view is Button) {
                 view.backgroundTintList = ColorStateList.valueOf(SECONDARY)

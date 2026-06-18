@@ -34,7 +34,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
@@ -57,7 +57,7 @@ import org.luckypray.dexkit.DexKitBridge
     categories = ["界面美化", "个人资料"],
     description = "居中「我」界面的资料卡",
 )
-object CenterProfileCard : ClickableHookItem(), IResolvesDex {
+object CenterProfileCard : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
     private const val CENTER_CARD_TAG = "wekit_account_info_center_card"

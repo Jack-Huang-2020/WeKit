@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -32,7 +32,7 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 
 @HookItem(name = "重定向文件下载路径", categories = ["聊天"], description = "将微信接收的聊天文件保存到自定义文件夹")
-object RedirectDownloadPath : ClickableHookItem(), IResolvesDex {
+object RedirectDownloadPath : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
     private var saveDir by prefOption("redirect_download_path_save_dir", "")

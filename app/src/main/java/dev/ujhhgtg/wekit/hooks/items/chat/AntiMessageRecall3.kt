@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
@@ -25,7 +25,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "阻止消息撤回 3", categories = ["聊天"], description = "有撤回提示")
-object AntiMessageRecall3 : ClickableHookItem(), IResolvesDex {
+object AntiMessageRecall3 : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 

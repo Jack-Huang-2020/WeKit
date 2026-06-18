@@ -7,13 +7,13 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.hooks.items.chat.ConversationGrouping
 import dev.ujhhgtg.wekit.utils.invokeOriginal
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 @HookItem(name = "隐藏主页下滑「最近」页", categories = ["界面美化"], description = "禁用主页下滑功能")
 object HideHomeScreenSwipeDownPage : SwitchHookItem() {
 
     override fun onEnable() {
-        ListView::class.resolve()
+        ListView::class.reflekt()
             .firstMethod {
                 name = "addHeaderView"
                 parameterCount = 3

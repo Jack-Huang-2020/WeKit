@@ -43,7 +43,7 @@ import dev.ujhhgtg.wekit.utils.TargetProcesses
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.nul
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 
 
 @HookItem(name = "指纹支付", categories = ["红包与支付"], description = "使用指纹快捷确认支付")
@@ -65,13 +65,13 @@ object FingerprintPay : ClickableHookItem() {
             return
         }
 
-        MyKeyboardWindow::class.asResolver().firstMethod { name = "setInputEditText" }.hookAfter {
+        MyKeyboardWindow::class.reflekt().firstMethod { name = "setInputEditText" }.hookAfter {
             if (args[0] == null) return@hookAfter
 
             WeLogger.i(TAG, "MyKeyboardWindow initialized, requesting biometric auth")
 
             val thiz = thisObject as MyKeyboardWindow
-            val digitViews = thiz.asResolver().field { type = View::class }.map { it.get()!! as View }
+            val digitViews = thiz.reflekt().fields { type = View::class }.map { it.get()!! as View }
 
             val context = thiz.context
 

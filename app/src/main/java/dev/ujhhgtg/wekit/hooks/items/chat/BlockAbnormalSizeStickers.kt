@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -8,7 +8,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "拦截异常大小贴纸表情", categories = ["聊天"], description = "拦截某些异常大小表情导致的闪退现象")
-object BlockAbnormalSizeStickers : SwitchHookItem(), IResolvesDex {
+object BlockAbnormalSizeStickers : SwitchHookItem(), IResolveDex {
 
     override fun onEnable() {
         ctorMmWxgfDrawable.hookBefore {

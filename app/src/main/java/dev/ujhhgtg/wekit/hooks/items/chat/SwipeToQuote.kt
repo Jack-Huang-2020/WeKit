@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.view.animation.Interpolator
 import android.widget.FrameLayout
 import de.robv.android.xposed.XC_MethodHook
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
@@ -16,8 +16,7 @@ import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.ui.utils.dpToPx
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 import java.util.Collections
 import java.util.WeakHashMap
@@ -27,7 +26,7 @@ import kotlin.math.cos
 import kotlin.math.exp
 
 @HookItem(name = "左划引用消息", categories = ["聊天"], description = "在消息上左划以引用")
-object SwipeToQuote : SwitchHookItem(), IResolvesDex,
+object SwipeToQuote : SwitchHookItem(), IResolveDex,
     WeChatMessageViewApi.ICreateViewListener {
 
     // Mutable per-view gesture state, kept off the heap as long as the view lives
@@ -49,7 +48,7 @@ object SwipeToQuote : SwitchHookItem(), IResolvesDex,
 
     override fun onEnable() {
         WeChatMessageViewApi.addListener(this)
-        ViewGroup::class.resolve()
+        ViewGroup::class.reflekt()
             .firstMethod { name = "onInterceptTouchEvent" }
             .hookAfter {
                 val v = thisObject as ViewGroup
@@ -80,7 +79,7 @@ object SwipeToQuote : SwitchHookItem(), IResolvesDex,
                 }
             }
 
-        View::class.resolve()
+        View::class.reflekt()
             .firstMethod { name = "onTouchEvent"; superclass() }
             .hookAfter {
                 val v = thisObject as View
@@ -149,19 +148,19 @@ object SwipeToQuote : SwitchHookItem(), IResolvesDex,
     }
 
     private fun onSwipeLeft(originalView: View, chattingContext: Any) {
-        val apiMan = chattingContext.asResolver()
+        val apiMan = chattingContext.reflekt()
             .firstField { type = WeServiceApi.classApiManager }
             .get()!!
         val api = WeServiceApi.getApiByClass(apiMan, classChattingUiFootComponent.clazz)
-        val chatFooter = api.asResolver()
+        val chatFooter = api.reflekt()
             .firstField { type = "com.tencent.mm.pluginsdk.ui.chat.ChatFooter" }
             .get()!! as FrameLayout
-        val quoteMethod = chatFooter.asResolver()
+        val quoteMethod = chatFooter.reflekt()
             .firstMethod {
                 parameters { params -> params[0] == WeMessageApi.classMsgInfo.clazz }
                 returnType = Boolean::class
             }.self
-        val chatHolder = originalView.tag.asResolver()
+        val chatHolder = originalView.tag.reflekt()
             .firstField { name = "chatHolder"; superclass() }.get()!!
         val msgInfo = methodGetMsgInfo.method.invoke(null, chatHolder, chattingContext)
         if (quoteMethod.parameterCount == 1) quoteMethod.invoke(chatFooter, msgInfo)

@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.hooks.api.core
 
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -10,7 +10,7 @@ import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
 @HookItem(name = "AppMsg 发送服务", categories = ["API"], description = "提供 XML 卡片消息发送能力")
-object WeAppMsgApi : ApiHookItem(), IResolvesDex {
+object WeAppMsgApi : ApiHookItem(), IResolveDex {
 
     private val methodParseXml by dexMethod()    // op0.q.u(String)
     private val methodSendAppMsg by dexMethod()  // k0.J(...)

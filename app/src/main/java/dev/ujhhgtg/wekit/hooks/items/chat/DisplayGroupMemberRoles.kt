@@ -9,20 +9,20 @@ import android.text.style.ReplacementSpan
 import android.view.View
 import android.widget.TextView
 import de.robv.android.xposed.XC_MethodHook
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeConversationApi
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.collections.LruCache
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.unreachable
 import org.luckypray.dexkit.DexKitBridge
 import kotlin.math.roundToInt
 
 @HookItem(name = "显示群成员身份", categories = ["聊天"], description = "在群聊中显示群成员的身份: 群主, 管理员, 成员")
-object DisplayGroupMemberRoles : SwitchHookItem(), IResolvesDex,
+object DisplayGroupMemberRoles : SwitchHookItem(), IResolveDex,
     WeChatMessageViewApi.ICreateViewListener {
 
     private val methodGetChatroomData by dexMethod()
@@ -54,7 +54,7 @@ object DisplayGroupMemberRoles : SwitchHookItem(), IResolvesDex,
 
         val role = resolvedRoles.getOrPut(groupId to sender) {
             val group = WeConversationApi.getGroup(groupId)
-            val senderIsGroupOwner = group.asResolver()
+            val senderIsGroupOwner = group.reflekt()
                 .firstField {
                     name = "field_roomowner"
                     superclass()
@@ -64,7 +64,7 @@ object DisplayGroupMemberRoles : SwitchHookItem(), IResolvesDex,
             if (senderIsGroupOwner) return@getOrPut 1
 
             val memberData = methodGetChatroomData.method.invoke(group, sender) ?: return
-            val memberRoleFlags = memberData.asResolver()
+            val memberRoleFlags = memberData.reflekt()
                 .firstField {
                     type = Int::class
                 }
@@ -75,7 +75,7 @@ object DisplayGroupMemberRoles : SwitchHookItem(), IResolvesDex,
         }
 
         val tag = view.tag
-        val textView = tag.asResolver()
+        val textView = tag.reflekt()
             .firstField {
                 name = "userTV"
                 superclass()

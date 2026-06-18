@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.utils.reflection.bool
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "禁用消息折叠", categories = ["聊天"], description = "阻止聊天消息被折叠")
-object DisableMessageCollapsing : SwitchHookItem(), IResolvesDex {
+object DisableMessageCollapsing : SwitchHookItem(), IResolveDex {
 
     private val methodFoldMsg by dexMethod()
 

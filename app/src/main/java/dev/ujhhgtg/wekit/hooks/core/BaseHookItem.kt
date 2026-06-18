@@ -2,17 +2,17 @@
 
 package dev.ujhhgtg.wekit.hooks.core
 
-import com.highcapable.kavaref.resolver.ConstructorResolver
-import com.highcapable.kavaref.resolver.MethodResolver
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.reflected.BaseReflectedMethod
+import dev.ujhhgtg.reflekt.reflected.ReflectedConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.BaseDexDelegate
 import dev.ujhhgtg.wekit.dexkit.dsl.DexConstructorDelegate
 import dev.ujhhgtg.wekit.dexkit.dsl.DexMethodDelegate
 import dev.ujhhgtg.wekit.utils.HookAction
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Executable
 import kotlin.reflect.KClass
@@ -100,32 +100,32 @@ abstract class BaseHookItem {
     ))
 
     @JvmName("hookBefore2")
-    internal inline fun MethodResolver<*>.hookBefore(
+    internal inline fun BaseReflectedMethod.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
-    ) = this.self.hookBefore(priority, action)
+    ) = self.hookBefore(priority, action)
 
     @JvmName("hookBefore3")
-    internal inline fun ConstructorResolver<*>.hookBefore(
+    internal inline fun ReflectedConstructor<*>.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
     ) = this.self.hookBefore(priority, action)
 
     internal inline fun Class<*>.hookBeforeOnCreate(
         crossinline action: HookAction
-    ) = this.asResolver().firstMethod { name = "onCreate" }.hookBefore(50, action)
+    ) = this.reflekt().firstMethod { name = "onCreate" }.hookBefore(50, action)
 
     internal inline fun Class<*>.hookAfterOnCreate(
         crossinline action: HookAction
-    ) = this.asResolver().firstMethod { name = "onCreate" }.hookAfter(50, action)
+    ) = this.reflekt().firstMethod { name = "onCreate" }.hookAfter(50, action)
 
     internal inline fun KClass<*>.hookBeforeOnCreate(
         crossinline action: HookAction
-    ) = this.asResolver().firstMethod { name = "onCreate" }.hookBefore(50, action)
+    ) = this.reflekt().firstMethod { name = "onCreate" }.hookBefore(50, action)
 
     internal inline fun KClass<*>.hookAfterOnCreate(
         crossinline action: HookAction
-    ) = this.asResolver().firstMethod { name = "onCreate" }.hookAfter(50, action)
+    ) = this.reflekt().firstMethod { name = "onCreate" }.hookAfter(50, action)
 
     // --- end hookBefore ---
 
@@ -145,13 +145,13 @@ abstract class BaseHookItem {
     ))
 
     @JvmName("hookAfter2")
-    internal inline fun MethodResolver<*>.hookAfter(
+    internal inline fun BaseReflectedMethod.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
-    ) = this.self.hookAfter(priority, action)
+    ) = self.hookAfter(priority, action)
 
     @JvmName("hookAfter3")
-    internal inline fun ConstructorResolver<*>.hookAfter(
+    internal inline fun ReflectedConstructor<*>.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
     ) = this.self.hookAfter(priority, action)

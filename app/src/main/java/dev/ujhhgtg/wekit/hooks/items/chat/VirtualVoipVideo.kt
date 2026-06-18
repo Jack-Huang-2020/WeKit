@@ -23,10 +23,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.highcapable.kavaref.extension.toClass
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import dev.ujhhgtg.comptime.This
+import dev.ujhhgtg.reflekt.firstMethod
+import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -39,7 +40,6 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.reflection.firstMethod
 import java.io.File
 import kotlin.io.path.div
 

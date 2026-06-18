@@ -2,7 +2,7 @@ package dev.ujhhgtg.wekit.hooks.api.core
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
-import com.highcapable.kavaref.extension.toClass
+import dev.ujhhgtg.reflekt.utils.toClass
 import com.tencent.wcdb.database.SQLiteDatabase
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.constants.Preferences
@@ -11,8 +11,7 @@ import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import java.util.concurrent.CopyOnWriteArrayList
 
 @SuppressLint("DiscouragedApi")
@@ -99,7 +98,7 @@ object WeDatabaseListenerApi : ApiHookItem() {
     // ==================== Insert Hook ====================
 
     private fun hookDatabaseInsert() {
-        SQLiteDatabase::class.resolve()
+        SQLiteDatabase::class.reflekt()
             .firstMethod {
                 name = "insertWithOnConflict"
                 parameters(String::class, String::class, ContentValues::class, Int::class)
@@ -124,7 +123,7 @@ object WeDatabaseListenerApi : ApiHookItem() {
         listOf(
             "com.tencent.wcdb.compat.SQLiteDatabase","com.tencent.wcdb.database.SQLiteDatabase"
         ).forEach { className ->
-            className.toClass().asResolver()
+            className.toClass().reflekt()
             .firstMethod {
                 name = "updateWithOnConflict"
                 parameters(
@@ -170,7 +169,7 @@ object WeDatabaseListenerApi : ApiHookItem() {
     }
 
     private fun hookNewQueryMethod() {
-        com.tencent.wcdb.compat.SQLiteDatabase::class.resolve()
+        com.tencent.wcdb.compat.SQLiteDatabase::class.reflekt()
             .firstMethod {
                 name = "rawQuery"
                 parameters(String::class, Array<Any>::class)
@@ -203,7 +202,7 @@ object WeDatabaseListenerApi : ApiHookItem() {
     }
 
     private fun hookOldQueryMethod() {
-        SQLiteDatabase::class.resolve().firstMethod {
+        SQLiteDatabase::class.reflekt().firstMethod {
             name = "rawQueryWithFactory"
             parameterCount = 5
         }.hookBefore {

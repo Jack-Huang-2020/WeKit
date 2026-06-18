@@ -2,15 +2,15 @@ package dev.ujhhgtg.wekit.hooks.items.chat
 
 import android.widget.Button
 import androidx.core.view.isVisible
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "自动查看原图", categories = ["聊天"], description = "在打开图片和视频时自动点击查看原图")
-object AutoViewOriginalMedia : SwitchHookItem(), IResolvesDex {
+object AutoViewOriginalMedia : SwitchHookItem(), IResolveDex {
 
     private val methodSetImageHdImgBtnVisibility by dexMethod()
     private val methodCheckNeedShowOriginVideoBtn by dexMethod()
@@ -47,10 +47,10 @@ object AutoViewOriginalMedia : SwitchHookItem(), IResolvesDex {
             if (method.isPlaceholder) return@forEach
 
             method.hookAfter {
-                thisObject.asResolver().field {
+                thisObject.reflekt().fields {
                     type = Button::class
                 }.forEach {
-                    it.get<Button>()?.let { imgBtn ->
+                    (it.get() as Button?)?.let { imgBtn ->
                         if (imgBtn.isVisible) {
                             val keywords = listOf(
                                 "查看原图", "Full Image",

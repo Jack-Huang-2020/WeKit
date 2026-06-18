@@ -23,7 +23,7 @@ import com.tencent.mm.plugin.sns.ui.improve.ImproveSnsTimelineUI
 import com.tencent.mm.ui.widget.imageview.WeImageView
 import com.tencent.mm.view.recyclerview.WxRecyclerView
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -39,8 +39,8 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.formatEpoch
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import java.lang.reflect.Field
 import java.util.Locale
 
@@ -48,7 +48,7 @@ import java.util.Locale
     name = "朋友圈底部详细信息", categories = ["朋友圈"],
     description = "在朋友圈列表项底部显示详情信息"
 )
-object DisplayDetails : ClickableHookItem(), IResolvesDex {
+object DisplayDetails : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 
@@ -79,7 +79,7 @@ object DisplayDetails : ClickableHookItem(), IResolvesDex {
         listOf(
             ImproveSnsTimelineUI::class.java,
             SnsUserUI::class.java
-        ).forEach { clazz -> clazz.asResolver().firstMethod {
+        ).forEach { clazz -> clazz.reflekt().firstMethod {
             name = "onCreate"
             parameters(Bundle::class)
         }.hookAfter {
@@ -150,19 +150,19 @@ object DisplayDetails : ClickableHookItem(), IResolvesDex {
 
     private fun ensureFields(snsInfo: Any) {
         if (!::snsIdField.isInitialized) {
-            snsIdField = snsInfo.asResolver()
+            snsIdField = snsInfo.reflekt()
                 .firstField { name = "field_snsId"; superclass() }.self.makeAccessible()
         }
         if (!::userNameField.isInitialized) {
-            userNameField = snsInfo.asResolver()
+            userNameField = snsInfo.reflekt()
                 .firstField { name = "field_userName"; superclass() }.self.makeAccessible()
         }
         if (!::createTimeField.isInitialized) {
-            createTimeField = snsInfo.asResolver()
+            createTimeField = snsInfo.reflekt()
                 .firstField { name = "field_createTime"; superclass() }.self.makeAccessible()
         }
         if (!::typeField.isInitialized) {
-            typeField = snsInfo.asResolver()
+            typeField = snsInfo.reflekt()
                 .firstField { name = "field_type"; superclass() }.self.makeAccessible()
         }
     }
@@ -261,15 +261,15 @@ object DisplayDetails : ClickableHookItem(), IResolvesDex {
     }
 
     private fun locateSnsInfo(itemView: View): Any {
-        val wrapper = itemView.asResolver().firstField {
+        val wrapper = itemView.reflekt().firstField {
             type = "com.tencent.mm.plugin.sns.ui.improve.view.ImproveInteractionLayout"
             superclass()
-        }.get() ?: itemView.asResolver().firstField {
+        }.get() ?: itemView.reflekt().firstField {
             type = classImproveSnsInfoWrapper.clazz
             superclass()
         }.get()!!
 
-        return wrapper.asResolver()
+        return wrapper.reflekt()
             .firstField { type = classImproveSnsInfo.clazz }.get()!!
     }
 }

@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
@@ -41,7 +41,7 @@ import kotlin.concurrent.thread
 import kotlin.random.Random
 
 @HookItem(name = "自动接收转账", categories = ["红包与支付"], description = "监听消息并自动接收转账")
-object AutoAcceptTransfers : ClickableHookItem(), IResolvesDex, WeDatabaseListenerApi.IInsertListener {
+object AutoAcceptTransfers : ClickableHookItem(), IResolveDex, WeDatabaseListenerApi.IInsertListener {
 
     private val TAG = This.Class.simpleName
 

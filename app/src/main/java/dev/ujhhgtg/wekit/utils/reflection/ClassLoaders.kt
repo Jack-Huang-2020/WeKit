@@ -1,11 +1,11 @@
 package dev.ujhhgtg.wekit.utils.reflection
 
 import android.content.Context
-import com.highcapable.kavaref.extension.ClassLoaderProvider
+import dev.ujhhgtg.reflekt.utils.ReflectionClassLoader
 
 object ClassLoaders {
 
-    inline val HOST: ClassLoader get() = ClassLoaderProvider.classLoader!!
+    inline val HOST: ClassLoader get() = ReflectionClassLoader.value!!
 
     inline val MODULE: ClassLoader get() = ClassLoaders.javaClass.classLoader!!
 

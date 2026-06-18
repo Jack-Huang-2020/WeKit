@@ -21,13 +21,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.highcapable.kavaref.extension.isSubclassOf
+import dev.ujhhgtg.reflekt.utils.isSubclassOf
 import com.tencent.mm.plugin.voip.widget.VoipForegroundService
 import com.tencent.mm.ui.LauncherUI
 import com.tencent.mm.ui.chatting.ChattingUI
 import com.tencent.wcdb.database.SQLiteDatabase
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeConversationApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
@@ -44,9 +44,8 @@ import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.reflection.BString
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 import kotlin.math.sqrt
@@ -62,7 +61,7 @@ import kotlin.math.sqrt
 4. 锁屏自动关闭聊天界面
 5. 摇一摇设备关闭聊天界面"""
 )
-object HideContacts : ClickableHookItem(), IResolvesDex {
+object HideContacts : ClickableHookItem(), IResolveDex {
 
     private val TAG = This.Class.simpleName
 
@@ -162,7 +161,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
                 WeLogger.d(TAG, "hid ${it.size} contacts in conversation list")
             }.toTypedArray())
 
-            val context = thisObject.asResolver()
+            val context = thisObject.reflekt()
                 .firstField { type { it isSubclassOf Activity::class } }
                 .get()!! as Activity
             val filter = IntentFilter().apply {
@@ -175,7 +174,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
 
         // --- shake to leave ---
 
-        ChattingUI::class.resolve().apply {
+        ChattingUI::class.reflekt().apply {
             firstMethod { name = "onResume" }.hookAfter {
                 val activity = thisObject as ChattingUI
 
@@ -199,10 +198,10 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
             val contacts = args[0] as MutableList<*>
 
             if (!::contactInfoField.isInitialized) {
-                contactInfoField = contacts[0]!!.asResolver()
+                contactInfoField = contacts[0]!!.reflekt()
                     .firstField { type { it.name.startsWith("com.tencent.mm.storage") } }
                     .self
-                usernameField = contactInfoField.type.asResolver()
+                usernameField = contactInfoField.type.reflekt()
                     .firstField {
                         name = "field_username"
                         superclass()
@@ -219,7 +218,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
         }
 
         methodChatroomContactAdapterInitCursor.hookAfter {
-            val cursor = thisObject.asResolver()
+            val cursor = thisObject.reflekt()
                 .firstMethod {
                     parameterCount = 0
                     returnType = Cursor::class
@@ -244,7 +243,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
             }
         }
 
-        methodChatroomContactAdapterInitCursor.method.declaringClass.resolve().apply {
+        methodChatroomContactAdapterInitCursor.method.declaringClass.reflekt().apply {
             firstMethod { name = "getCount" }.hookAfter {
                 result = result as Int - hiddenPositions.size
             }
@@ -263,7 +262,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
 
         // --- fts ---
 
-        SQLiteDatabase::class.asResolver().firstMethod {
+        SQLiteDatabase::class.reflekt().firstMethod {
             name = "rawQueryWithFactory"
             parameters(SQLiteDatabase.CursorFactory::class, BString, Array<Any>::class, BString)
         }.hookBefore {
@@ -294,7 +293,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
         listOf(
             methodVoipAcceptIncomingCall, methodVoipStartAcceptVoip
         ).forEach { it.hookBefore {
-            val callerWxId = args[0].asResolver().firstField { type = BString }.get()!! as String
+            val callerWxId = args[0].reflekt().firstField { type = BString }.get()!! as String
             if (callerWxId in hiddenContacts) {
                 pendingVoipUser = callerWxId
                 result = null
@@ -310,7 +309,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
         }
 
         methodVoipServiceExSetInviteContent.hookBefore {
-            val wxId = args[0].asResolver().firstField { type = BString }.get()!! as String
+            val wxId = args[0].reflekt().firstField { type = BString }.get()!! as String
             if (wxId in hiddenContacts) {
                 pendingVoipUser = wxId
                 if (autoRejectVoip) {
@@ -328,7 +327,7 @@ object HideContacts : ClickableHookItem(), IResolvesDex {
             }
         }
 
-        VoipForegroundService::class.asResolver().firstMethod { name = "onStartCommand" }.hookBefore {
+        VoipForegroundService::class.reflekt().firstMethod { name = "onStartCommand" }.hookBefore {
             val self = thisObject as VoipForegroundService
             val intent = args[0] as? Intent? ?: return@hookBefore
             val wxId = intent.getStringExtra("Voip_User") ?: return@hookBefore

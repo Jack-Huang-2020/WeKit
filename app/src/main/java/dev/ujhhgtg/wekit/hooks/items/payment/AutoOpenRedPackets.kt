@@ -18,9 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.net.toUri
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
@@ -48,7 +48,7 @@ import kotlin.random.Random
 @SuppressLint("DiscouragedApi")
 @HookItem(name = "自动抢红包", categories = ["红包与支付"], description = "监听消息并自动拆开红包")
 object AutoOpenRedPackets : ClickableHookItem(), WeDatabaseListenerApi.IInsertListener,
-    IResolvesDex {
+    IResolveDex {
 
     private val TAG = This.Class.simpleName
 

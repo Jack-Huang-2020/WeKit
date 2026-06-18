@@ -1,18 +1,18 @@
 package dev.ujhhgtg.wekit.hooks.items.system
 
 import android.provider.Settings
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "环境伪装", categories = ["系统与隐私"], description = "伪装未启用 ADB, 开发者选项或 VPN, 可能有助于通过人脸等场景下的环境安全性检测")
-object SpoofEnvironment : SwitchHookItem(), IResolvesDex {
+object SpoofEnvironment : SwitchHookItem(), IResolveDex {
 
     override fun onEnable() {
-        Settings.Global::class.resolve()
+        Settings.Global::class.reflekt()
             .firstMethod {
                 name = "getInt"
                 parameterCount = 3
@@ -22,7 +22,7 @@ object SpoofEnvironment : SwitchHookItem(), IResolvesDex {
                     result = 0
             }
 
-        Settings.Secure::class.resolve()
+        Settings.Secure::class.reflekt()
             .firstMethod {
                 name = "getInt"
                 parameterCount = 3

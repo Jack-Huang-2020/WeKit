@@ -28,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager
 import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
@@ -73,7 +73,7 @@ private val TAG = nameOf(::DexResolver)
 @Composable
 fun DexResolver(
     context: Context,
-    outdatedItems: List<IResolvesDex>,
+    outdatedItems: List<IResolveDex>,
     scope: CoroutineScope,
     dismiss: () -> Unit
 ) {
@@ -101,7 +101,7 @@ fun DexResolver(
     }
 
     suspend fun scanItem(
-        item: IResolvesDex,
+        item: IResolveDex,
         dexKit: DexKitBridge,
         progressChannel: Channel<ScanProgress>
     ): ScanResult {

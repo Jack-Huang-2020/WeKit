@@ -326,7 +326,7 @@ dev.ujhhgtg.wekit/
 #### 类命名
 
 - **基类**: `Base*` (如 `BaseHookItem`)
-- **接口**: `I*` (如 `IResolvesDex`, `IHookBridge`)
+- **接口**: `I*` (如 `IResolveDex`, `IHookBridge`)
 - **工厂**: `*Factory` (如 `HookItemFactory`)
 - **管理器**: `*Manager` (如 `ConfigManager`)
 - **工具类**: `*Utils` (如 `LogUtils`)
@@ -509,7 +509,7 @@ package dev.ujhhgtg.wekit.hooks.item.chat.msg
 
 import dev.ujhhgtg.wekit.constants.MMVersion
 import dev.ujhhgtg.wekit.core.model.SwitchHookItem
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
 import dev.ujhhgtg.wekit.host.HostInfo
 import org.luckypray.dexkit.DexKitBridge
@@ -518,7 +518,7 @@ import org.luckypray.dexkit.DexKitBridge
     path = "聊天/版本兼容示例",
     description = "展示如何进行版本适配"
 )
-class VersionCompatExample : SwitchHookItem(), IResolvesDex {
+class VersionCompatExample : SwitchHookItem(), IResolveDex {
 
     private val methodTarget by dexMethod()
 
@@ -772,7 +772,7 @@ package dev.ujhhgtg.wekit.hooks.item.chat.msg
 
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.wekit.core.model.SwitchHookItem
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
 import org.luckypray.dexkit.DexKitBridge
 
@@ -786,7 +786,7 @@ import org.luckypray.dexkit.DexKitBridge
     path = "聊天/阻止消息撤回",  // 功能在设置中的路径
     description = "防止对方撤回消息"    // 功能描述
 )
-class AntiRevokeMsg : SwitchHookItem(), IResolvesDex {
+class AntiRevokeMsg : SwitchHookItem(), IResolveDex {
 
     // 1. 声明需要 Hook 的方法（使用委托）
     private val methodRevokeMsg by dexMethod()
@@ -829,7 +829,7 @@ package dev.ujhhgtg.wekit.hooks.item.chat.risk
 import android.content.Context
 import com.afollestad.materialdialogs.MaterialDialog
 import dev.ujhhgtg.wekit.core.model.SwitchHookItem
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
 import org.luckypray.dexkit.DexKitBridge
 
@@ -843,7 +843,7 @@ import org.luckypray.dexkit.DexKitBridge
     path = "聊天与消息/危险功能",
     description = "启用前需要确认"
 )
-class DangerousFeature : SwitchHookItem(), IResolvesDex {
+class DangerousFeature : SwitchHookItem(), IResolveDex {
 
     private val methodTarget by dexMethod()
 
@@ -1232,7 +1232,7 @@ package dev.ujhhgtg.wekit.hooks.items.dev
     path = "开发者选项/多进程功能",
     description = "演示如何在多个进程中运行 Hook"
 )
-class MultiProcessFeature : SwitchHookItem(), IResolvesDex {
+class MultiProcessFeature : SwitchHookItem(), IResolveDex {
 
     /**
      * 指定在主进程和工具进程中运行

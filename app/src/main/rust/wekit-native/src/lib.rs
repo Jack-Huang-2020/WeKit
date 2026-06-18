@@ -94,17 +94,17 @@ pub extern "C" fn Java_dev_ujhhgtg_wekit_utils_AudioUtils_mp3ToSilk(
     mp3_path: jstring,
     silk_path: jstring,
 ) -> jboolean {
-    logi!("running mp3ToSilk...");
+    logi!("converting mp3 to silk...");
     with_jstring(env, mp3_path, |mp3| {
         with_jstring(env, silk_path, |silk| {
             logi!("converting {} to {}", mp3, silk);
             match audio_utils::mp3_to_silk(mp3, silk) {
                 Ok(_) => {
-                    logi!("mp3ToSilk succeeded");
+                    logi!("mp3_to_silk succeeded");
                     JNI_TRUE
                 }
                 Err(err) => {
-                    logi!("mp3ToSilk failed: {:?}", err);
+                    logi!("mp3_to_silk failed: {:?}", err);
                     JNI_FALSE
                 }
             }
@@ -119,17 +119,17 @@ pub extern "C" fn Java_dev_ujhhgtg_wekit_utils_AudioUtils_silkToPcm(
     silk_path: jstring,
     pcm_path: jstring,
 ) -> jboolean {
-    logi!("running silkToPcm...");
+    logi!("converting silk to pcm...");
     with_jstring(env, silk_path, |silk| {
         with_jstring(env, pcm_path, |pcm| {
             logi!("converting {} to {}", silk, pcm);
             match audio_utils::silk_to_pcm(silk, pcm, 24000) {
                 Ok(_) => {
-                    logi!("silkToPcm succeeded");
+                    logi!("silk_to_pcm succeeded");
                     JNI_TRUE
                 }
                 Err(err) => {
-                    logi!("silkToPcm failed: {:?}", err);
+                    logi!("silk_to_pcm failed: {:?}", err);
                     JNI_FALSE
                 }
             }
@@ -144,15 +144,15 @@ pub extern "C" fn Java_dev_ujhhgtg_wekit_utils_AudioUtils_pcmToMp3(
     pcm_path: jstring,
     mp3_path: jstring,
 ) -> jboolean {
-    logi!("running pcmToMp3...");
+    logi!("converting pcm to mp3...");
     with_jstring(env, pcm_path, |pcm| {
         with_jstring(env, mp3_path, |mp3| {
             logi!("converting {} to {}", pcm, mp3);
             if audio_utils::pcm_to_mp3(pcm, mp3, 24000, 128) {
-                logi!("pcmToMp3 succeeded");
+                logi!("pcm_to_mp3 succeeded");
                 JNI_TRUE
             } else {
-                logi!("pcmToMp3 failed");
+                logi!("pcm_to_mp3 failed");
                 JNI_FALSE
             }
         })
@@ -168,11 +168,11 @@ pub extern "C" fn Java_dev_ujhhgtg_wekit_utils_AudioUtils_getDurationMs(
     logi!("reading audio duration...");
     with_jstring(env, path, |p| match audio_utils::get_audio_duration_ms(p) {
         Ok(val) => {
-            logi!("getDurationMs succeeded");
+            logi!("get_audio_duration_ms succeeded: {val}");
             val
         }
         Err(err) => {
-            loge!("getDurationMs failed: {:?}", err);
+            loge!("get_audio_duration_ms failed: {:?}", err);
             0
         }
     })

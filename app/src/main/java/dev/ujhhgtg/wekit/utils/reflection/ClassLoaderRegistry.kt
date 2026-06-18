@@ -5,6 +5,7 @@ package dev.ujhhgtg.wekit.utils.reflection
 import android.annotation.SuppressLint
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 import dev.ujhhgtg.wekit.utils.WeLogger
 import java.lang.ref.WeakReference
 import java.util.Collections

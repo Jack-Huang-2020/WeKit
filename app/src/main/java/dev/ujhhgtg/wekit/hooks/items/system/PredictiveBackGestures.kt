@@ -10,12 +10,12 @@ import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.Text
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import com.tencent.mm.ui.LauncherUI
 import com.tencent.mm.ui.chatting.ChattingUIFragment
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.PackageNames
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -24,13 +24,12 @@ import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 // https://github.com/Ujhhgtg/PandorasBox
 @HookItem(name = "预见性返回动画", categories = ["系统与隐私"], description = "为微信的活动强制启用预见性返回动画 [需 SDK >= 33]")
-object PredictiveBackGestures : ClickableHookItem(), IResolvesDex {
+object PredictiveBackGestures : ClickableHookItem(), IResolveDex {
 
     private const val PRIVATE_FLAG_ENABLE_ON_BACK_INVOKED_CALLBACK = 1 shl 2
     private const val PRIVATE_FLAG_DISABLE_ON_BACK_INVOKED_CALLBACK = 1 shl 3
@@ -46,31 +45,31 @@ object PredictiveBackGestures : ClickableHookItem(), IResolvesDex {
             return
         }
 
-        ApplicationInfo::class.resolve()
+        ApplicationInfo::class.reflekt()
             .firstConstructor {
                 parameters(ApplicationInfo::class.java)
             }.hookAfter {
                 val info = args[0] as ApplicationInfo
                 val field =
-                    info.asResolver().firstField { name = "privateFlagsExt" }
+                    info.reflekt().firstField { name = "privateFlagsExt" }
                 var flags = field.get() as Int
                 flags = flags or PRIVATE_FLAG_EXT_ENABLE_ON_BACK_INVOKED_CALLBACK
                 field.set(flags)
             }
 
-        ActivityInfo::class.resolve()
+        ActivityInfo::class.reflekt()
             .firstConstructor()
             .hookAfter {
                 val info = thisObject as ActivityInfo
                 applyFlag(info)
             }
 
-        ActivityThread::class.resolve()
+        ActivityThread::class.reflekt()
             .firstMethod { name = "handleLaunchActivity" }
             .hookBefore {
                 val record = args[0]
                 val infoField =
-                    record.asResolver().firstField { name = "activityInfo" }
+                    record.reflekt().firstField { name = "activityInfo" }
                 val info = infoField.get() as ActivityInfo
                 applyFlag(info)
             }
@@ -78,7 +77,7 @@ object PredictiveBackGestures : ClickableHookItem(), IResolvesDex {
         // --- LauncherUI ChattingUIFragment workaround ---
 
         methodChattingUIFragmentDoResume.hookAfter {
-            val activity = thisObject.asResolver()
+            val activity = thisObject.reflekt()
                 .firstMethod {
                     name = "thisActivity"
                     superclass()
@@ -95,7 +94,7 @@ object PredictiveBackGestures : ClickableHookItem(), IResolvesDex {
 //            .firstMethod { name = "finish" }
         methodChattingUIFragmentDoPause
             .hookAfter {
-                val activity = thisObject.asResolver()
+                val activity = thisObject.reflekt()
                     .firstMethod {
                         name = "thisActivity"
                         superclass()
@@ -133,7 +132,7 @@ object PredictiveBackGestures : ClickableHookItem(), IResolvesDex {
     // --- end LauncherUI ChattingUIFragment workaround ---
 
     private fun applyFlag(info: ActivityInfo) {
-        val field = info.asResolver().firstField { name = "privateFlags" }
+        val field = info.reflekt().firstField { name = "privateFlags" }
         var flags = field.get() as Int
         flags = flags or (PRIVATE_FLAG_ENABLE_ON_BACK_INVOKED_CALLBACK)
         flags = flags and (PRIVATE_FLAG_DISABLE_ON_BACK_INVOKED_CALLBACK).inv()

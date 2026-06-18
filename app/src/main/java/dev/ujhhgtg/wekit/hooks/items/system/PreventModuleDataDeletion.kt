@@ -1,17 +1,17 @@
 package dev.ujhhgtg.wekit.hooks.items.system
 
-import com.highcapable.kavaref.condition.type.Modifiers
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.Modifiers
 import dev.ujhhgtg.wekit.BuildConfig
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Field
 
 @HookItem(name = "阻止微信清理模块数据", categories = ["系统与隐私"], description = "阻止微信「设置 → 存储空间 → 清理」删除模块数据")
-object PreventModuleDataDeletion : SwitchHookItem(), IResolvesDex {
+object PreventModuleDataDeletion : SwitchHookItem(), IResolveDex {
 
     private val methodNativeFileSystemEntryDelete by dexMethod()
     private lateinit var basePathField: Field
@@ -20,10 +20,10 @@ object PreventModuleDataDeletion : SwitchHookItem(), IResolvesDex {
         methodNativeFileSystemEntryDelete.hookBefore {
             val relPath = args[0] as String
             if (!::basePathField.isInitialized) {
-                basePathField = thisObject.asResolver()
+                basePathField = thisObject.reflekt()
                     .firstField {
                         type = String::class
-                        modifiers(Modifiers.FINAL)
+                        modifiers { it.contains(Modifiers.FINAL) }
                     }.self
             }
             val basePath = basePathField.get(thisObject) as String

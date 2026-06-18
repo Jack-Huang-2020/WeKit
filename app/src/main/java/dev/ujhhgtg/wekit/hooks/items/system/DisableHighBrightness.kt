@@ -4,13 +4,13 @@ import android.view.WindowManager
 import com.android.internal.policy.PhoneWindow
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.reflection.resolve
+import dev.ujhhgtg.reflekt.reflekt
 
 @HookItem(name = "禁止屏幕高亮度", categories = ["系统与隐私"], description = "禁止微信将屏幕亮度设置得过高")
 object DisableHighBrightness : SwitchHookItem() {
 
     override fun onEnable() {
-        PhoneWindow::class.resolve()
+        PhoneWindow::class.reflekt()
             .firstMethod {
                 name = "setAttributes"
                 parameters(WindowManager.LayoutParams::class)

@@ -3,7 +3,6 @@ package dev.ujhhgtg.wekit.hooks.items.contacts
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -14,11 +13,13 @@ import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
+import dev.ujhhgtg.wekit.hooks.api.core.models.WeContact
 import dev.ujhhgtg.wekit.hooks.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -41,8 +42,7 @@ import kotlin.time.Duration.Companion.seconds
 @HookItem(name = "检测单向删除好友", categories = ["联系人与群组"], description = "批量扫描全部好友, 检测是否被对方单向删除")
 object DetectDeletedFriends : ClickableHookItem() {
 
-    override val noSwitchWidget: Boolean
-        get() = true
+    override val noSwitchWidget = true
 
     private val TAG = This.Class.simpleName
 
@@ -53,35 +53,40 @@ object DetectDeletedFriends : ClickableHookItem() {
     }
 
     private data class AbnormalFriend(
-        val nickname: String,
-        val remarkName: String,
-        val wxId: String,
-        val customWxId: String,
+        val contact: WeContact,
         val status: AbnormalFriendStatus
     )
 
     private sealed class DialogPhase {
         data object Idle : DialogPhase()
-        data class Scanning(var completed: MutableIntState, val total: Int) : DialogPhase()
+        data class Scanning(
+            val completed: MutableIntState,
+            val total: Int,
+            val abnormalFriends: MutableList<AbnormalFriend> = mutableListOf()
+        ) : DialogPhase()
         data class Done(val friends: List<AbnormalFriend>) : DialogPhase()
     }
 
     override fun onClick(context: Context) {
-        val phaseState = mutableStateOf<DialogPhase>(DialogPhase.Idle)
-
         val friends = WeDatabaseApi.getFriends().filter { c ->
             c.type != 2051 && c.type != 2049 && c.wxId != WeApi.selfWxId
         }
 
         showComposeDialog(context) {
-            var phase by phaseState
+            var phase by remember { mutableStateOf<DialogPhase>(DialogPhase.Idle) }
 
             LaunchedEffect(phase) {
                 if (phase is DialogPhase.Scanning) {
                     dialog.setCancelable(false)
                     CoroutineScope(Dispatchers.IO).launch {
-                        val abnormalFriends = mutableListOf<AbnormalFriend>()
+                        val scanningPhase = phase as DialogPhase.Scanning
+                        val abnormalFriends = scanningPhase.abnormalFriends
                         for (friend in friends) {
+                            // detect whether user quitted halfway
+                            if (phase !is DialogPhase.Scanning) {
+                                break
+                            }
+
                             WePacketHelper.sendCgi(
                                 "/cgi-bin/mmpay-bin/beforetransfer", 2783, 0, 0,
                                 """{"2":"${friend.wxId}"}"""
@@ -92,28 +97,30 @@ object DetectDeletedFriends : ClickableHookItem() {
                                     val realName = jsonObj["4"]
                                     WeLogger.d(TAG, "realName=$realName")
                                     if (realName == null) {
-                                        abnormalFriends += AbnormalFriend(
-                                            nickname = friend.nickname,
-                                            remarkName = friend.remarkName.ifBlank { "<无备注>" },
-                                            wxId = friend.wxId,
-                                            customWxId = friend.customWxId,
-                                            // TODO: figure out status, might have to perform another request
-                                            status = AbnormalFriendStatus.ThatDeletedThis,
-                                        )
+                                        synchronized(abnormalFriends) {
+                                            abnormalFriends += AbnormalFriend(
+                                                contact = friend,
+                                                // TODO: figure out status, might have to perform another request
+                                                status = AbnormalFriendStatus.ThatDeletedThis,
+                                            )
+                                        }
                                     }
-                                    (phase as DialogPhase.Scanning).completed.intValue++
+                                    scanningPhase.completed.intValue++
                                 }
 
                                 onFailure { errType, errCode, errMsg ->
                                     WeLogger.w(TAG, "failed friend ${friend.wxId}: $errType, $errCode, $errMsg")
-                                    (phase as DialogPhase.Scanning).completed.intValue++
+                                    scanningPhase.completed.intValue++
                                 }
                             }
                             // seems like WeChat's server rate limits requests
                             delay(1.seconds)
                         }
-                        phase = DialogPhase.Done(abnormalFriends)
-                        dialog.setCancelable(true)
+
+                        if (phase is DialogPhase.Scanning) {
+                            phase = DialogPhase.Done(synchronized(abnormalFriends) { abnormalFriends.toList() })
+                            dialog.setCancelable(true)
+                        }
                     }
                 }
             }
@@ -140,14 +147,16 @@ object DetectDeletedFriends : ClickableHookItem() {
                                 items(abnormalFriends) { friend ->
                                     ListItem(
                                         modifier = Modifier.clickable {
-                                            WeApi.openContact(context, friend.wxId, WeApi.OpenContactDestination.HOMEPAGE)
+                                            WeApi.openContact(context, friend.contact.wxId, WeApi.OpenContactDestination.HOMEPAGE)
                                         },
-                                        headlineContent = { Text("${friend.nickname} (${friend.remarkName})") },
+                                        headlineContent = { Text(friend.contact.displayName) },
                                         supportingContent = {
                                             Column {
                                                 Text("状态: ${friend.status.displayName}")
-                                                Text("微信 ID: ${friend.wxId}")
-                                                Text("微信号: ${friend.customWxId}")
+                                                Text("昵称: ${friend.contact.nickname}")
+                                                Text("备注: ${friend.contact.remarkName}")
+                                                Text("微信 ID: ${friend.contact.wxId}")
+                                                Text("微信号: ${friend.contact.customWxId}")
                                             }
                                         })
                                 }
@@ -162,7 +171,19 @@ object DetectDeletedFriends : ClickableHookItem() {
                         }
                     }
 
-                    is DialogPhase.Scanning -> null
+                    is DialogPhase.Scanning -> {
+                        {
+                            TextButton(onClick = {
+                                val scanningPhase = phase as DialogPhase.Scanning
+                                // display current snapshot immediately
+                                val foundSoFar = synchronized(scanningPhase.abnormalFriends) {
+                                    scanningPhase.abnormalFriends.toList()
+                                }
+                                phase = DialogPhase.Done(foundSoFar)
+                                dialog.setCancelable(true)
+                            }) { Text("终止") }
+                        }
+                    }
                     is DialogPhase.Done -> null
                 },
                 confirmButton = when (phase) {
@@ -177,23 +198,21 @@ object DetectDeletedFriends : ClickableHookItem() {
 
                     is DialogPhase.Done -> {
                         {
-                            Row {
-                                Button(onClick = {
-                                    val abnormalFriends = (phase as DialogPhase.Done).friends
-                                    val text = abnormalFriends.joinToString("\n\n") { friend ->
-                                        buildString {
-                                            appendLine("昵称: ${friend.nickname}")
-                                            appendLine("备注: ${friend.remarkName}")
-                                            appendLine("微信 ID: ${friend.wxId}")
-                                            appendLine("微信号: ${friend.customWxId}")
-                                            appendLine("状态: ${friend.status.displayName}")
-                                        }
+                            Button(onClick = {
+                                val abnormalFriends = (phase as DialogPhase.Done).friends
+                                val text = abnormalFriends.joinToString("\n\n") { friend ->
+                                    buildString {
+                                        appendLine("昵称: ${friend.contact.nickname}")
+                                        appendLine("备注: ${friend.contact.remarkName}")
+                                        appendLine("微信 ID: ${friend.contact.wxId}")
+                                        appendLine("微信号: ${friend.contact.customWxId}")
+                                        appendLine("状态: ${friend.status.displayName}")
                                     }
-                                    copyToClipboard(context, text)
-                                    showToast(context, "已复制")
-                                }) { Text("复制") }
-                                Button(onDismiss) { Text("关闭") }
-                            }
+                                }
+                                copyToClipboard(context, text)
+                                showToast(context, "已复制")
+                            }) { Text("复制") }
+                            Button(onDismiss) { Text("关闭") }
                         }
                     }
 

@@ -3,7 +3,7 @@
 package dev.ujhhgtg.wekit.hooks.api.core.models
 
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.removeWxIdPrefix
 import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import dev.ujhhgtg.wekit.utils.serialization.XmlJsonParser
@@ -142,7 +142,7 @@ class MessageInfo(val instance: Any) {
     companion object {
         @Suppress("UNCHECKED_CAST")
         private fun <T> getFieldByName(instance: Any, name: String): T {
-            return instance.asResolver()
+            return instance.reflekt()
                 .firstField {
                     this.name = name
                     superclass()

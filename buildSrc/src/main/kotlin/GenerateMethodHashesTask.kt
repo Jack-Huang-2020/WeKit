@@ -26,7 +26,7 @@ abstract class GenerateMethodHashesTask : DefaultTask() {
         val hashMap = mutableMapOf<String, String>()
 
         // Pre-filter files containing the token to save time, then strictly validate inside
-        srcDir.walk().filter { it.isFile && it.extension == "kt" && it.readText().contains("IResolvesDex") }.forEach { file ->
+        srcDir.walk().filter { it.isFile && it.extension == "kt" && it.readText().contains("IResolveDex") }.forEach { file ->
             val content = file.readText()
             val packageName = Regex("""package\s+([\w.]+)""").find(content)?.groupValues?.get(1)
 
@@ -40,8 +40,8 @@ abstract class GenerateMethodHashesTask : DefaultTask() {
             if (braceIndex == -1) return@forEach
             val classSignature = content.substring(startIndex, braceIndex)
 
-            // Strict check: Must have an inheritance colon ':' and explicitly list 'IResolvesDex'
-            if (!classSignature.contains(":") || !Regex("""\bIResolvesDex\b""").containsMatchIn(classSignature)) {
+            // Strict check: Must have an inheritance colon ':' and explicitly list 'IResolveDex'
+            if (!classSignature.contains(":") || !Regex("""\bIResolveDex\b""").containsMatchIn(classSignature)) {
                 return@forEach // Skip files that only import or reference the interface internally
             }
 
@@ -88,7 +88,7 @@ abstract class GenerateMethodHashesTask : DefaultTask() {
 
             // Guardrail check only applies to actual implementations now
             if (blocks.isEmpty()) {
-                error("Class $fullClassName implements IResolvesDex but has neither a resolveDex() body nor any inline dex blocks.")
+                error("Class $fullClassName implements IResolveDex but has neither a resolveDex() body nor any inline dex blocks.")
             }
 
             val combinedBody = blocks.joinToString(separator = "\n")

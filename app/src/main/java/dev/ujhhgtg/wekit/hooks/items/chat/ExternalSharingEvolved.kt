@@ -12,6 +12,11 @@ import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @HookItem(name = "分享进化", categories = ["聊天"], description = "让微信的系统分享菜单更易用 (没写完)")
 object ExternalSharingEvolved : ClickableHookItem() {
@@ -19,7 +24,10 @@ object ExternalSharingEvolved : ClickableHookItem() {
     private val TAG = This.Class.simpleName
 
     override fun onEnable() {
-        updateSharingShortcuts()
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(1.seconds) // wait for db to initialize
+            updateSharingShortcuts()
+        }
     }
 
     override fun onClick(context: Context) {

@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.hooks.items.contacts
 
 import android.app.Activity
-import com.highcapable.kavaref.extension.toClassOrNull
+import dev.ujhhgtg.reflekt.utils.toClassOrNull
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem

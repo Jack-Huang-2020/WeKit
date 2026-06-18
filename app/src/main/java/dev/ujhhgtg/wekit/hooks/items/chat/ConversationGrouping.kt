@@ -34,7 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeConversationApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -43,15 +43,15 @@ import dev.ujhhgtg.wekit.hooks.items.contacts.HideContacts
 import dev.ujhhgtg.wekit.ui.utils.AppTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "对话分组", categories = ["聊天"], description = "向主页顶部添加 Tab 栏, 将对话分组\n建议同时启用「界面美化/隐藏主页下滑「最近」页」")
-object ConversationGrouping : SwitchHookItem(), IResolvesDex {
+object ConversationGrouping : SwitchHookItem(), IResolveDex {
 
     override fun onEnable() {
         methodOnTabCreate.hookAfter {
-            val convListView = thisObject.asResolver()
+            val convListView = thisObject.reflekt()
                 .firstField {
                     type = "com.tencent.mm.ui.conversation.ConversationListView"
                 }

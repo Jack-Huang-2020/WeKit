@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import de.robv.android.xposed.XC_MethodHook
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
@@ -25,7 +25,7 @@ import org.luckypray.dexkit.DexKitBridge
     name = "圆角头像", categories = ["联系人与群组", "界面美化"],
     description = "自定义微信全局头像渲染的圆角弧度"
 )
-object RoundAvatars : ClickableHookItem(), IResolvesDex {
+object RoundAvatars : ClickableHookItem(), IResolveDex {
 
     private const val KEY_ROUND_AVATAR = "round_avatar_radius_factor"
 

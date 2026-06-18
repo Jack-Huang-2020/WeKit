@@ -9,13 +9,11 @@ import android.os.IBinder
 import android.util.ArrayMap
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.reflekt.utils.makeAccessible
 
-private val mActivitiesField = ActivityThread::class.java.getDeclaredField("mActivities")
-    .also { it.isAccessible = true }
-private val pausedField = ActivityThread.ActivityClientRecord::class.java.getDeclaredField("paused")
-    .also { it.isAccessible = true }
-private val activityField = ActivityThread.ActivityClientRecord::class.java.getDeclaredField("activity")
-    .also { it.isAccessible = true }
+private val mActivitiesField = ActivityThread::class.java.getDeclaredField("mActivities").makeAccessible()
+private val pausedField = ActivityThread.ActivityClientRecord::class.java.getDeclaredField("paused").makeAccessible()
+private val activityField = ActivityThread.ActivityClientRecord::class.java.getDeclaredField("activity").makeAccessible()
 
 fun getTopMostActivity(allowPaused: Boolean = false): Activity? = runCatching {
     val currentActivityThread = ActivityThread.currentActivityThread()
@@ -28,7 +26,7 @@ fun getTopMostActivity(allowPaused: Boolean = false): Activity? = runCatching {
         .mapNotNull { record -> activityField.get(record) as? Activity }
         .lastOrNull()
 }.getOrElse {
-    WeLogger.e(nameOf(::getTopMostActivity), "failed to get topmost activity", it)
+    WeLogger.e(nameOf(::getTopMostActivity), "failed to get top-most activity", it)
     null
 }
 

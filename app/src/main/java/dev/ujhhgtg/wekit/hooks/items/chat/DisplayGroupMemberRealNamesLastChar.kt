@@ -17,7 +17,7 @@ import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.hooks.items.chat.DisplayGroupMemberRealNamesLastChar.cacheFile
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -100,7 +100,7 @@ object DisplayGroupMemberRealNamesLastChar : SwitchHookItem(), WeChatMessageView
         if (msgInfo.isSend != 0) return
         val sender = runCatching { msgInfo.sender }.getOrNull() ?: return
 
-        val textView = view.tag.asResolver()
+        val textView = view.tag.reflekt()
             .firstField { name = "userTV"; superclass() }
             .get() as? TextView? ?: return
 

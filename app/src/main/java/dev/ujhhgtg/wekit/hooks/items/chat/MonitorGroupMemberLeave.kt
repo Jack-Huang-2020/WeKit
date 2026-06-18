@@ -3,9 +3,9 @@ package dev.ujhhgtg.wekit.hooks.items.chat
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.view.View
-import com.highcapable.kavaref.condition.type.Modifiers
+import dev.ujhhgtg.reflekt.utils.Modifiers
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.api.core.WeApi
 import dev.ujhhgtg.wekit.hooks.api.core.WeDatabaseApi
@@ -15,10 +15,10 @@ import dev.ujhhgtg.wekit.hooks.api.core.models.MessageType
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
 import dev.ujhhgtg.wekit.utils.reflection.BString
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 
 @HookItem(name = "退群监控", categories = ["联系人与群组"], description = "监控群成员退出并在退出时插入系统消息作为提示")
-object MonitorGroupMemberLeave : SwitchHookItem(), IResolvesDex, WeDatabaseListenerApi.IUpdateListener {
+object MonitorGroupMemberLeave : SwitchHookItem(), IResolveDex, WeDatabaseListenerApi.IUpdateListener {
 
     private val TAG = This.Class.simpleName
 
@@ -26,7 +26,7 @@ object MonitorGroupMemberLeave : SwitchHookItem(), IResolvesDex, WeDatabaseListe
         WeDatabaseListenerApi.addListener(this)
 
         methodHandleSpanClick.hookBefore {
-            val url = args[1].asResolver().firstField {
+            val url = args[1].reflekt().firstField {
                 type = BString
                 modifiers { it.contains(Modifiers.FINAL) }
             }.get()!! as String

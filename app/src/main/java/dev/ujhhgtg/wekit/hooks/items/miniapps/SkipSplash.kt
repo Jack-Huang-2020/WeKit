@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.hooks.items.miniapps
 
-import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.utils.TargetProcesses
 import org.luckypray.dexkit.DexKitBridge
 
 @HookItem(name = "跳过启动页面", categories = ["小程序"], description = "跳过小程序启动页面, 变相去广告 (实验性)")
-object SkipSplash : SwitchHookItem(), IResolvesDex {
+object SkipSplash : SwitchHookItem(), IResolveDex {
 
     private val methodShowSplash by dexMethod()
 

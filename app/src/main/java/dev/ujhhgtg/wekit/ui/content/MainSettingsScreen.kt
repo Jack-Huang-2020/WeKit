@@ -41,7 +41,7 @@ import com.composables.icons.materialsymbols.outlined.Update
 import com.composables.icons.materialsymbols.outlined.Upload
 import com.composables.icons.materialsymbols.outlined.Volunteer_activism
 import com.composables.icons.materialsymbols.outlined.Wand_stars
-import com.highcapable.kavaref.extension.createInstance
+import dev.ujhhgtg.reflekt.utils.createInstance
 import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.activity.StandardActivity
@@ -69,7 +69,7 @@ import dev.ujhhgtg.wekit.utils.formatEpoch
 import dev.ujhhgtg.wekit.utils.openInSystem
 import dev.ujhhgtg.wekit.utils.reflection.BString
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaderRegistry
-import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -194,7 +194,7 @@ class MainSettingsScreen : BasePrefsScreen(BuildConfig.TAG) {
                             WeLogger.i("wa", "found custom cl: $className")
                             val cl = cl.javaClass.classLoader!!
                             WeLogger.i("wa", "found custom cl's cl: ${cl.javaClass.name}, $cl")
-                            val baseApkDir = cl.asResolver().firstField { type = BString }.get()!! as String
+                            val baseApkDir = cl.reflekt().firstField { type = BString }.get()!! as String
                             WeLogger.i("wa", "found module: $baseApkDir")
                             val waDexKit = runBlocking {
                                 withContext(Dispatchers.IO) {
@@ -213,7 +213,7 @@ class MainSettingsScreen : BasePrefsScreen(BuildConfig.TAG) {
                                 }.single().getInstance(cl)
 
                                 val instance = clazz.createInstance(1, getTopMostActivity())
-                                instance.asResolver().firstMethod { name = "onMenuItemClick" }.invoke(null)
+                                instance.reflekt().firstMethod { name = "onMenuItemClick" }.invoke(null)
                             }
 
                             return@addPreference

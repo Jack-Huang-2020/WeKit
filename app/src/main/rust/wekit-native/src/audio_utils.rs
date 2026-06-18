@@ -5,13 +5,12 @@ use std::ffi::c_void;
 use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom, Write};
 use std::path::Path;
-use symphonia::core::audio::SampleBuffer;
-use symphonia::core::codecs::DecoderOptions;
+use symphonia::core::codecs::audio::AudioDecoderOptions;
 use symphonia::core::formats::FormatOptions;
+use symphonia::core::formats::TrackType;
+use symphonia::core::formats::probe::Hint;
 use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
-use symphonia::core::probe::Hint;
-use symphonia::core::units::Time;
 
 use crate::{loge, logi};
 
@@ -21,36 +20,43 @@ pub fn mp3_to_pcm_mono(path: &str) -> Result<(Vec<i16>, u32)> {
     let mut hint = Hint::new();
     hint.with_extension("mp3");
 
-    let probed = symphonia::default::get_probe().format(
+    let mut format = symphonia::default::get_probe().probe(
         &hint,
         mss,
-        &FormatOptions::default(),
-        &MetadataOptions::default(),
+        FormatOptions::default(),
+        MetadataOptions::default(),
     )?;
 
-    let mut format = probed.format;
-    let track = format.default_track().unwrap();
-    let sample_rate = track.codec_params.sample_rate.unwrap();
-    let mut decoder =
-        symphonia::default::get_codecs().make(&track.codec_params, &DecoderOptions::default())?;
+    let track = format.default_track(TrackType::Audio).unwrap();
+    let audio_params = track
+        .codec_params
+        .as_ref()
+        .and_then(|cp| cp.audio())
+        .unwrap();
+    let sample_rate = audio_params.sample_rate.unwrap();
+
+    let mut decoder = symphonia::default::get_codecs()
+        .make_audio_decoder(audio_params, &AudioDecoderOptions::default())?;
 
     let mut samples: Vec<i16> = Vec::new();
 
     loop {
         let packet = match format.next_packet() {
-            Ok(p) => p,
+            Ok(Some(p)) => p,
+            Ok(None) => break,
             Err(_) => break,
         };
         let decoded = decoder.decode(&packet)?;
-        let spec = *decoded.spec();
-        let mut buf = SampleBuffer::<i16>::new(decoded.capacity() as u64, spec);
-        buf.copy_interleaved_ref(decoded);
+        let spec = decoded.spec().clone();
+        let channels = spec.channels().count();
 
-        let channels = spec.channels.count();
+        // Copy decoded audio as interleaved i16 samples
+        let mut raw: Vec<i16> = Vec::new();
+        decoded.copy_to_vec_interleaved(&mut raw);
+
         // Downmix to mono if needed
-        let raw = buf.samples();
         if channels == 1 {
-            samples.extend_from_slice(raw);
+            samples.extend_from_slice(&raw);
         } else {
             for chunk in raw.chunks(channels) {
                 let mono = chunk.iter().map(|&s| s as i32).sum::<i32>() / channels as i32;
@@ -407,38 +413,34 @@ fn get_mp3_duration_ms(path: &str) -> Result<i64> {
     let mut hint = Hint::new();
     hint.with_extension("mp3");
 
-    let probed = symphonia::default::get_probe().format(
+    let format = symphonia::default::get_probe().probe(
         &hint,
         mss,
-        &FormatOptions::default(),
-        &MetadataOptions::default(),
+        FormatOptions::default(),
+        MetadataOptions::default(),
     )?;
 
-    let format = probed.format;
-
-    // Try to get duration from the default track
+    // Try to get duration from the default audio track
     let track = format
-        .default_track()
-        .ok_or_else(|| anyhow!("No default track found in: {}", path))?;
+        .default_track(TrackType::Audio)
+        .ok_or_else(|| anyhow!("No default audio track found in: {}", path))?;
 
-    let codec_params = &track.codec_params;
-
-    let n_frames = codec_params
-        .n_frames
+    // n_frames and time_base are now on Track directly
+    let n_frames = track
+        .num_frames
         .ok_or_else(|| anyhow!("Could not determine frame count for: {}", path))?;
 
-    let sample_rate = codec_params
-        .sample_rate
-        .ok_or_else(|| anyhow!("Could not determine sample rate for: {}", path))?;
-
-    let time_base = codec_params
+    let time_base = track
         .time_base
         .ok_or_else(|| anyhow!("Could not determine time base for: {}", path))?;
 
-    let duration: Time = time_base.calc_time(n_frames);
-    let ms = (duration.seconds * 1000) as i64 + (duration.frac * 1000.0) as i64;
+    // calc_time now takes Timestamp and returns Option<Time>
+    let duration = time_base
+        .calc_time(symphonia::core::units::Timestamp::from(n_frames as i64))
+        .ok_or_else(|| anyhow!("Could not calculate duration for: {}", path))?;
 
-    let _ = sample_rate; // available if needed for manual calculation
+    let ms = duration.as_millis() as i64;
+
     Ok(ms)
 }
 
