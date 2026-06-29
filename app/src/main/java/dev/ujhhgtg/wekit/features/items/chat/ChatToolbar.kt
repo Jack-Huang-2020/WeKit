@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.children
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Account_box
@@ -188,15 +190,15 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                 parameters(Context::class, AttributeSet::class, Int::class)
             }
             .hookAfter {
-                val lifecycleOwner = LifecycleOwnerProvider.lifecycleOwner
-
                 val chatFooter = thisObject as FrameLayout
+                val activity = chatFooter.context as Activity
+
+                val lifecycleOwner = LifecycleOwnerProvider.getOrCreate(activity )
+
                 chatFooter.setLifecycleOwner(lifecycleOwner)
                 val linearLayout = chatFooter.findViewByChildIndexes<LinearLayout>(0, 1)!!
                 linearLayout.setLifecycleOwner(lifecycleOwner)
                 if (linearLayout.findViewWhich<View> { it is ComposeView } != null) return@hookAfter
-
-                val activity = chatFooter.context as Activity
                 activity.window.decorView.setLifecycleOwner(lifecycleOwner)
 
                 linearLayout.addView(ComposeView(activity).apply {
@@ -204,8 +206,23 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
 
                     setContent {
                         AppTheme {
-                            DisposableEffect(Unit) {
+                            DisposableEffect(lifecycleOwner) {
+                                val observer = LifecycleEventObserver { _, event ->
+                                    when (event) {
+                                        Lifecycle.Event.ON_PAUSE,
+                                        Lifecycle.Event.ON_STOP,
+                                        Lifecycle.Event.ON_DESTROY -> {
+                                            lastConversation = null
+                                        }
+
+                                        else -> {}
+                                    }
+                                }
+
+                                lifecycleOwner.lifecycle.addObserver(observer)
+
                                 onDispose {
+                                    lifecycleOwner.lifecycle.removeObserver(observer)
                                     toolsState.value = emptyList()
                                     lastConversation = null
                                 }
