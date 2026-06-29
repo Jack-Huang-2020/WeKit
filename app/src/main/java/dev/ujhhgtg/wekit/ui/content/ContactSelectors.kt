@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.ui.content
 import android.icu.text.Transliterator
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,17 +16,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,11 +45,33 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.composables.icons.materialsymbols.MaterialSymbols
+import com.composables.icons.materialsymbols.outlined.Chat
+import com.composables.icons.materialsymbols.outlined.Groups
+import com.composables.icons.materialsymbols.outlined.Label
+import com.composables.icons.materialsymbols.outlined.Person
 import com.composables.icons.materialsymbols.outlined.Search
+import com.composables.icons.materialsymbols.outlined.Tag
+import dev.ujhhgtg.wekit.features.api.core.WeContactLabelApi
+import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.core.models.IWeContact
+import dev.ujhhgtg.wekit.features.api.core.models.WeContact
+import dev.ujhhgtg.wekit.features.api.core.models.WeGroup
+import dev.ujhhgtg.wekit.features.api.core.models.WeOfficialAccount
+import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.showToast
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.util.Locale
+
+enum class FilterType(val displayName: String) {
+    ALL("全部"),
+    FRIENDS("好友"),
+    GROUPS("群聊"),
+    OFFICIAL_ACCOUNTS("公众号"),
+    OTHERS("其他")
+}
 
 @Composable
 fun BaseContactSelector(
@@ -67,7 +96,7 @@ fun BaseContactSelector(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val alphabet = remember { ('A'..'Z').toList() + '#' }
+    val alphabet = remember { listOf("已选") + ('A'..'Z').map { it.toString() } + "#" }
 
     val transliterator = remember {
         try {
@@ -77,10 +106,125 @@ fun BaseContactSelector(
         }
     }
 
-    val groupedContacts = remember(filteredContacts, transliterator, selectionKey) {
-        filteredContacts.groupBy { contact ->
+    var friendWxIds by remember { mutableStateOf(emptySet<String>()) }
+    var groupWxIds by remember { mutableStateOf(emptySet<String>()) }
+    var officialAccountWxIds by remember { mutableStateOf(emptySet<String>()) }
+    var allLabels by remember { mutableStateOf(emptyList<WeContactLabelApi.ContactLabel>()) }
+    var labelContactsMap by remember { mutableStateOf(emptyMap<String, Set<String>>()) }
+    var isFiltersLoaded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            try {
+                if (WeDatabaseApi.isReady) {
+                    val friends = WeDatabaseApi.getFriends().map { it.wxId }.toSet()
+                    val groups = WeDatabaseApi.getGroups().map { it.wxId }.toSet()
+                    val officialAccounts = WeDatabaseApi.getOfficialAccounts().map { it.wxId }.toSet()
+                    val labels = WeContactLabelApi.getAllLabels()
+                    val labelMap = labels.associate { label ->
+                        label.labelName to WeContactLabelApi.getContactsByLabelId(label.labelId).toSet()
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        friendWxIds = friends
+                        groupWxIds = groups
+                        officialAccountWxIds = officialAccounts
+                        allLabels = labels
+                        labelContactsMap = labelMap
+                        isFiltersLoaded = true
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showToast("数据库尚未初始化, 筛选将不可用!")
+                        isFiltersLoaded = true
+                    }
+                }
+            } catch (e: Exception) {
+                WeLogger.e("ContactSelectors", "Failed to load filters in coroutine", e)
+                withContext(Dispatchers.Main) {
+                    isFiltersLoaded = true
+                }
+            }
+        }
+    }
+
+    var selectedType by remember { mutableStateOf(FilterType.ALL) }
+    var selectedLabelName by remember { mutableStateOf<String?>(null) }
+
+    val typeCounts = remember(filteredContacts, friendWxIds, groupWxIds, officialAccountWxIds) {
+        var friends = 0
+        var groups = 0
+        var officialAccounts = 0
+        var others = 0
+        for (contact in filteredContacts) {
+            val isGroup = contact is WeGroup || contact.wxId.endsWith("@chatroom") || contact.wxId in groupWxIds
+            val isOfficial = contact is WeOfficialAccount || contact.wxId.startsWith("gh_") || contact.wxId in officialAccountWxIds
+            val isFriend = contact.wxId in friendWxIds || contact is WeContact && !isGroup && !isOfficial && contact.type and 1 != 0
+            when {
+                isGroup -> groups++
+                isOfficial -> officialAccounts++
+                isFriend -> friends++
+                else -> others++
+            }
+        }
+        mapOf(
+            FilterType.ALL to filteredContacts.size,
+            FilterType.FRIENDS to friends,
+            FilterType.GROUPS to groups,
+            FilterType.OFFICIAL_ACCOUNTS to officialAccounts,
+            FilterType.OTHERS to others
+        )
+    }
+
+    val availableTypes = remember(typeCounts) {
+        FilterType.entries.filter { type ->
+            type == FilterType.ALL || typeCounts[type] ?: 0 > 0
+        }
+    }
+    val showTypeFilterRow = remember(availableTypes, isFiltersLoaded) { isFiltersLoaded && availableTypes.size > 2 }
+
+
+    val labelCounts = remember(filteredContacts, labelContactsMap) {
+        labelContactsMap.mapValues { (_, wxIds) ->
+            filteredContacts.count { it.wxId in wxIds }
+        }
+    }
+    val availableLabels = remember(allLabels, labelCounts) {
+        allLabels.filter { label ->
+            labelCounts[label.labelName] ?: 0 > 0
+        }
+    }
+    val showLabelFilterRow = remember(availableLabels, isFiltersLoaded) { isFiltersLoaded && availableLabels.isNotEmpty() }
+
+    val displayedContacts = remember(filteredContacts, selectedType, selectedLabelName, friendWxIds, groupWxIds, officialAccountWxIds, labelContactsMap) {
+        filteredContacts.filter { contact ->
+            val isGroup = contact is WeGroup || contact.wxId.endsWith("@chatroom") || contact.wxId in groupWxIds
+            val isOfficial = contact is WeOfficialAccount || contact.wxId.startsWith("gh_") || contact.wxId in officialAccountWxIds
+            val isFriend = contact.wxId in friendWxIds || contact is WeContact && !isGroup && !isOfficial && contact.type and 1 != 0
+
+            val matchesType = when (selectedType) {
+                FilterType.ALL -> true
+                FilterType.FRIENDS -> isFriend
+                FilterType.GROUPS -> isGroup
+                FilterType.OFFICIAL_ACCOUNTS -> isOfficial
+                FilterType.OTHERS -> !isFriend && !isGroup && !isOfficial
+            }
+
+            val matchesLabel = if (selectedLabelName == null) {
+                true
+            } else {
+                val labelWxIds = labelContactsMap[selectedLabelName] ?: emptySet()
+                contact.wxId in labelWxIds
+            }
+
+            matchesType && matchesLabel
+        }
+    }
+
+    val groupedContacts = remember(displayedContacts, transliterator, selectionKey) {
+        displayedContacts.groupBy { contact ->
             if (isSelected(contact)) {
-                "Selected"
+                "已选"
             } else {
                 val name = contact.displayName.trim()
                 if (name.isEmpty()) return@groupBy "#"
@@ -99,8 +243,8 @@ fun BaseContactSelector(
         }.toSortedMap { c1, c2 ->
             when {
                 c1 == c2 -> 0
-                c1 == "Selected" -> -1
-                c2 == "Selected" -> 1
+                c1 == "已选" -> -1
+                c2 == "已选" -> 1
                 c1 == "#" -> 1
                 c2 == "#" -> -1
                 else -> c1.compareTo(c2)
@@ -137,114 +281,208 @@ fun BaseContactSelector(
                     singleLine = true
                 )
 
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(vertical = 4.dp)
+                if (showTypeFilterRow) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        groupedContacts.forEach { (letter, contactsInGroup) ->
-                            stickyHeader(key = "header_$letter") {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.surfaceContainerHighest
-                                ) {
-                                    Text(
-                                        text = if (letter == "Selected") "已选" else letter,
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.primary
+                        items(availableTypes) { type ->
+                            val isSelected = selectedType == type
+                            val count = typeCounts[type] ?: 0
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedType = type },
+                                label = { Text("${type.displayName} ($count)") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = when (type) {
+                                            FilterType.ALL -> MaterialSymbols.Outlined.Search
+                                            FilterType.FRIENDS -> MaterialSymbols.Outlined.Person
+                                            FilterType.GROUPS -> MaterialSymbols.Outlined.Groups
+                                            FilterType.OFFICIAL_ACCOUNTS -> MaterialSymbols.Outlined.Chat
+                                            FilterType.OTHERS -> MaterialSymbols.Outlined.Tag
+                                        },
+                                        contentDescription = type.displayName,
+                                        modifier = Modifier.size(16.dp)
                                     )
                                 }
-                            }
+                            )
+                        }
+                    }
+                }
 
-                            items(
-                                items = contactsInGroup,
-                                key = { it.wxId }
-                            ) { contact ->
-                                Row(
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .fillMaxWidth()
-                                        .clickable { onItemClick(contact) }
-                                        .padding(vertical = 12.dp, horizontal = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    if (leadingControl != null) {
-                                        leadingControl(contact)
-                                        Spacer(modifier = Modifier.width(12.dp))
+                if (showLabelFilterRow) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        item {
+                            Icon(
+                                imageVector = MaterialSymbols.Outlined.Label,
+                                contentDescription = "标签",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        item {
+                            val isSelected = selectedLabelName == null
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedLabelName = null },
+                                label = { Text("全部") }
+                            )
+                        }
+
+                        items(availableLabels) { label ->
+                            val isSelected = selectedLabelName == label.labelName
+                            val labelCount = labelCounts[label.labelName] ?: 0
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedLabelName = if (isSelected) null else label.labelName },
+                                label = { Text("${label.labelName} ($labelCount)") }
+                            )
+                        }
+                    }
+                }
+
+                if (showTypeFilterRow || showLabelFilterRow) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                }
+
+                if (displayedContacts.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "无匹配的联系人",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            groupedContacts.forEach { (letter, contactsInGroup) ->
+                                stickyHeader(key = "header_$letter") {
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = MaterialTheme.colorScheme.surfaceContainerHighest
+                                    ) {
+                                        Text(
+                                            text = if (letter == "已选") "已选" else letter,
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
+                                }
 
-                                    AsyncImage(
-                                        model = avatarModelProvider?.invoke(contact) ?: contact.avatarUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
+                                items(
+                                    items = contactsInGroup,
+                                    key = { it.wxId }
+                                ) { contact ->
+                                    Row(
                                         modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(RoundedCornerShape(6.dp)),
-                                        imageLoader = GlobalImageLoader
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
+                                            .animateItem()
+                                            .fillMaxWidth()
+                                            .clickable { onItemClick(contact) }
+                                            .padding(vertical = 12.dp, horizontal = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (leadingControl != null) {
+                                            leadingControl(contact)
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                        }
 
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = contact.displayName,
-                                            style = MaterialTheme.typography.bodyLarge
+                                        AsyncImage(
+                                            model = avatarModelProvider?.invoke(contact) ?: contact.avatarUrl,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(RoundedCornerShape(6.dp)),
+                                            imageLoader = GlobalImageLoader
                                         )
-                                        Text(
-                                            text = subtitleProvider?.invoke(contact) ?: contact.wxId,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
+                                        Spacer(modifier = Modifier.width(12.dp))
 
-                                    if (trailingControl != null) {
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        trailingControl(contact)
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = contact.displayName,
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                            Text(
+                                                text = subtitleProvider?.invoke(contact) ?: contact.wxId,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        if (trailingControl != null) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            trailingControl(contact)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(start = 8.dp, end = 4.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        alphabet.forEach { letter ->
-                            val isAvailable = groupedContacts.containsKey(letter.toString())
-                            Text(
-                                text = letter.toString(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (isAvailable) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                                },
-                                modifier = Modifier
-                                    .clickable {
-                                        val targetLetter = sectionIndices.keys
-                                            .filter { it != "Selected" }
-                                            .firstOrNull { it.first() >= letter }
-                                            ?: sectionIndices.keys.lastOrNull()
-
-                                        targetLetter?.let { tl ->
-                                            sectionIndices[tl]?.let { targetIndex ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(start = 8.dp, end = 4.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            alphabet.forEach { letter ->
+                                val isAvailable = groupedContacts.containsKey(letter)
+                                Text(
+                                    text = if (letter == "已选") "✓" else letter,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (isAvailable) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                    },
+                                    modifier = Modifier
+                                        .clickable {
+                                            val targetIndex = if (letter == "已选") {
+                                                sectionIndices["已选"]
+                                            } else {
+                                                val targetLetter = sectionIndices.keys
+                                                    .filter { it != "已选" }
+                                                    .firstOrNull { it.first() >= letter.first() }
+                                                    ?: sectionIndices.keys.lastOrNull()
+                                                targetLetter?.let { sectionIndices[it] }
+                                            }
+                                            targetIndex?.let { index ->
                                                 coroutineScope.launch {
-                                                    listState.scrollToItem(targetIndex)
+                                                    listState.scrollToItem(index)
                                                 }
                                             }
                                         }
-                                    }
-                                    .padding(vertical = 2.dp, horizontal = 4.dp)
-                            )
+                                        .padding(vertical = 2.dp, horizontal = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
