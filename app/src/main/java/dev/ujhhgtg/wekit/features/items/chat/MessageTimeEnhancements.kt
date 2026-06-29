@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -64,6 +66,7 @@ object MessageTimeEnhancements : ClickableFeature(),
     private var pattern by prefOption("msg_time_pattern", "yyyy/MM/dd HH:mm:ss")
     private var textSize by prefOption("msg_time_text_size", 10)
     private var displayFormat by prefOption("msg_time_display_format", $$"$time | $type")
+    private var isAlwaysCentered by prefOption("msg_time_always_centered", false)
 
     private fun getFormattedText(msgInfo: MessageInfo): String {
         var result = displayFormat
@@ -77,9 +80,9 @@ object MessageTimeEnhancements : ClickableFeature(),
             val createTime = msgInfo.createTime
             val zoneId = java.time.ZoneId.systemDefault()
             val epochDay = java.time.LocalDate.now(zoneId).toEpochDay() -
-                java.time.Instant.ofEpochMilli(createTime).atZone(zoneId).toLocalDate().toEpochDay()
+                    java.time.Instant.ofEpochMilli(createTime).atZone(zoneId).toLocalDate().toEpochDay()
             val relTimeStr = when {
-                epochDay > 1 -> "${epochDay}天前"
+                epochDay > 1 -> "$epochDay 天前"
                 epochDay == 1L -> "昨天"
                 else -> {
                     val diff = System.currentTimeMillis() - createTime
@@ -90,8 +93,8 @@ object MessageTimeEnhancements : ClickableFeature(),
                             val hours = diff / 3600000
                             when {
                                 mins < 1 -> "刚刚"
-                                hours < 1 -> "${mins}分钟前"
-                                else -> "${maxOf(hours, 1L)}小时前"
+                                hours < 1 -> "$mins 分钟前"
+                                else -> "${maxOf(hours, 1L)} 小时前"
                             }
                         }
                     }
@@ -168,52 +171,60 @@ object MessageTimeEnhancements : ClickableFeature(),
 
         val lp = time.layoutParams as? RelativeLayout.LayoutParams
         if (lp != null) {
-            // Always remove WeChat's default horizontal centering rule
-            lp.removeRule(RelativeLayout.CENTER_HORIZONTAL)
-
-            // 3. Conditional alignment based on who sent the message
-            if (msgInfo.isSelfSender) {
-                // Align to the Right (End)
+            if (isAlwaysCentered) {
+                lp.addRule(RelativeLayout.CENTER_HORIZONTAL)
                 lp.removeRule(RelativeLayout.ALIGN_PARENT_START)
-                lp.addRule(RelativeLayout.ALIGN_PARENT_END)
-
-                lp.marginEnd = edgeMarginPx
-                lp.marginStart = 0 // Clear opposing margin to prevent bugs on view recycling
-
-                time.gravity = Gravity.END
-            } else {
-                // Align to the Left (Start)
                 lp.removeRule(RelativeLayout.ALIGN_PARENT_END)
-                lp.addRule(RelativeLayout.ALIGN_PARENT_START)
+                lp.marginStart = 0
+                lp.marginEnd = 0
+                time.gravity = Gravity.CENTER_HORIZONTAL
+            } else {
+                lp.removeRule(RelativeLayout.CENTER_HORIZONTAL)
 
-                // Resolve avatar to check if it's currently hidden
-                if (!::avatarField.isInitialized) {
-                    avatarField = tag.reflekt()
-                        .firstField { name = "avatarIV"; superclass() }.self
-                }
-                val avatar = avatarField.get(tag) as View?
-                val avatarContainer = avatar?.parent as? View ?: avatar
+                // 3. Conditional alignment based on who sent the message
+                if (msgInfo.isSelfSender) {
+                    // Align to the Right (End)
+                    lp.removeRule(RelativeLayout.ALIGN_PARENT_START)
+                    lp.addRule(RelativeLayout.ALIGN_PARENT_END)
 
-                if (avatarContainer != null && avatarContainer.visibility != View.VISIBLE) {
-                    // If the avatar is hidden, shift the timestamp right to align under the bubble.
-                    // Uses measured width if available; otherwise falls back to 52dp (40dp avatar + 12dp spacing).
-                    val avatarWidthPx = if (avatarContainer.width > 0) {
-                        avatarContainer.width
-                    } else {
-                        TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP,
-                            52f,
-                            context.resources.displayMetrics
-                        ).toInt()
-                    }
-                    lp.marginStart = edgeMarginPx + avatarWidthPx
+                    lp.marginEnd = edgeMarginPx
+                    lp.marginStart = 0 // Clear opposing margin to prevent bugs on view recycling
+
+                    time.gravity = Gravity.END
                 } else {
-                    // Default edge spacing when avatar is visible
-                    lp.marginStart = edgeMarginPx
-                }
+                    // Align to the Left (Start)
+                    lp.removeRule(RelativeLayout.ALIGN_PARENT_END)
+                    lp.addRule(RelativeLayout.ALIGN_PARENT_START)
 
-                lp.marginEnd = 0 // Clear opposing margin to prevent bugs on view recycling
-                time.gravity = Gravity.START
+                    // Resolve avatar to check if it's currently hidden
+                    if (!::avatarField.isInitialized) {
+                        avatarField = tag.reflekt()
+                            .firstField { name = "avatarIV"; superclass() }.self
+                    }
+                    val avatar = avatarField.get(tag) as View?
+                    val avatarContainer = avatar?.parent as? View ?: avatar
+
+                    if (avatarContainer != null && avatarContainer.visibility != View.VISIBLE) {
+                        // If the avatar is hidden, shift the timestamp right to align under the bubble.
+                        // Uses measured width if available; otherwise falls back to 52dp (40dp avatar + 12dp spacing).
+                        val avatarWidthPx = if (avatarContainer.width > 0) {
+                            avatarContainer.width
+                        } else {
+                            TypedValue.applyDimension(
+                                TypedValue.COMPLEX_UNIT_DIP,
+                                52f,
+                                context.resources.displayMetrics
+                            ).toInt()
+                        }
+                        lp.marginStart = edgeMarginPx + avatarWidthPx
+                    } else {
+                        // Default edge spacing when avatar is visible
+                        lp.marginStart = edgeMarginPx
+                    }
+
+                    lp.marginEnd = 0 // Clear opposing margin to prevent bugs on view recycling
+                    time.gravity = Gravity.START
+                }
             }
 
             time.layoutParams = lp
@@ -225,6 +236,7 @@ object MessageTimeEnhancements : ClickableFeature(),
             var displayFormatInput by remember { mutableStateOf(TextFieldValue(displayFormat)) }
             var patternInput by remember { mutableStateOf(pattern) }
             var textSizeInputRaw by remember { mutableStateOf(textSize.toString()) }
+            var isAlwaysCenteredInput by remember { mutableStateOf(isAlwaysCentered) }
             var isFocused by remember { mutableStateOf(false) }
 
             val insertPlaceholder = { placeholder: String ->
@@ -300,6 +312,20 @@ object MessageTimeEnhancements : ClickableFeature(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        ListItem(
+                            headlineContent = { Text("时间居中显示") },
+                            supportingContent = { Text("时间是否始终居中, 不根据发送方居左居右") },
+                            modifier = Modifier.clickable {
+                                isAlwaysCenteredInput = !isAlwaysCentered
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = isAlwaysCenteredInput,
+                                    onCheckedChange = null
+                                )
+                            }
+                        )
                     }
                 },
                 confirmButton = {
@@ -313,6 +339,7 @@ object MessageTimeEnhancements : ClickableFeature(),
                         displayFormat = displayFormatInput.text
                         pattern = patternInput
                         textSize = textSizeInput
+                        isAlwaysCentered = isAlwaysCenteredInput // 保存配置
                         onDismiss()
                     }) { Text("确定") }
                 },

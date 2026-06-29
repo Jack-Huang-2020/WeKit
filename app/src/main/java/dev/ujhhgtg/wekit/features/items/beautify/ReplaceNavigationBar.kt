@@ -2,7 +2,10 @@ package dev.ujhhgtg.wekit.features.items.beautify
 
 import android.app.Activity
 import android.content.Context
+import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -130,15 +133,13 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                     scrollOffsetState.floatValue = positionOffset
                 }
 
-            bottomTabViewGroup.removeAllViews()
-            bottomTabViewGroup.addView(
-                ComposeView(activity).apply {
-                    setLifecycleOwner(lifecycleOwner)
+            val useFloating = useFloating
+            val useBackdrop = useBackdrop
 
-                    val useFloating = useFloating
-                    val useBackdrop = useBackdrop
+            val composeView = ComposeView(activity).apply {
+                setLifecycleOwner(lifecycleOwner)
 
-                    setContent {
+                setContent {
                         AppTheme {
                             var selectedIndex by selectedPageIndexState
                             val unreadCount by unreadCountState
@@ -175,7 +176,6 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                             else -> inactiveColor
                                         }
 
-                                        // Switches icon variant mid-swipe to match standard M3 spec
                                         val showFilled = if (offset < 0.5f) isSelected else isNext
                                         val currentIcon = if (showFilled) item.filled else item.outlined
 
@@ -274,9 +274,30 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                     }
                                 }
                             }
-                        }
                     }
-                })
+                }
+            }
+
+            if (useFloating) {
+                // In floating mode, hide the original tab bar container so that WeChat's
+                // FrostedContentView reads its height as 0 and doesn't draw a frosted gray
+                // overlay behind it. Instead, attach the ComposeView directly to the parent
+                // FrameLayout as an overlay on top of the content.
+                bottomTabViewGroup.removeAllViews()
+                bottomTabViewGroup.visibility = View.GONE
+
+                viewParent.addView(
+                    composeView,
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        Gravity.BOTTOM
+                    )
+                )
+            } else {
+                bottomTabViewGroup.removeAllViews()
+                bottomTabViewGroup.addView(composeView)
+            }
         }
 
         methodUpdateTabUnread.hookBefore {

@@ -53,6 +53,7 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import kotlinx.serialization.Serializable
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -99,7 +100,7 @@ object AggregateChats : ClickableFeature(),
     @Volatile
     private var foldersCache: List<ChatFolder>? = null
 
-    private val folderMembersCache = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
+    private val folderMembersCache = ConcurrentHashMap<String, List<String>>()
 
     private val suppressQueryRewrite = ThreadLocal.withInitial { false }
 
