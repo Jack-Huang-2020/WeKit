@@ -96,10 +96,7 @@ object SwipeToDeleteConversation : ClickableFeature(), IResolveDex {
 
     private val classMvvmConversationAdapter by dexClass(allowFailure = true) {
         matcher {
-            usingStrings(
-                "MicroMsg.ConversationAdapter.MvvmConversationAdapter",
-                "[getView] position="
-            )
+            usingEqStrings("MicroMsg.ConversationAdapter.MvvmConversationAdapter")
         }
     }
 
