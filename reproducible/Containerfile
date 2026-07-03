@@ -1,0 +1,81 @@
+# WeKit reproducible build environment.
+#
+# This image pins every part of the toolchain that can affect build output:
+# JDK, Android SDK platform / build-tools / NDK, and the Rust toolchain.
+# Building a given commit inside this image should yield byte-identical
+# (pre-signing) APKs regardless of the host.
+#
+# Build:  podman build -t wekit-build -f reproducible/Containerfile .
+# Use:    see reproducible/verify-reproducible.sh
+
+FROM docker.io/library/eclipse-temurin:21.0.11_10-jdk-noble
+
+# --- pinned versions ---------------------------------------------------------
+# Keep these in sync with gradle/libs.versions.toml and .github/workflows/ci.yml.
+ARG ANDROID_CMDLINE_TOOLS_VERSION=13114758        # cmdline-tools zip build number
+ARG ANDROID_PLATFORM=android-37.0
+ARG ANDROID_BUILD_TOOLS=37.0.0
+# AGP 9.2.1 resolves this default build-tools version for R8/dexing; keep it
+# installed so no non-deterministic auto-install happens at build time.
+ARG ANDROID_BUILD_TOOLS_AGP_DEFAULT=36.0.0
+ARG ANDROID_NDK=30.0.14904198
+ARG ANDROID_PLATFORM_TOOLS=37.0.0
+ARG RUST_VERSION=1.96.1
+# -----------------------------------------------------------------------------
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_ROOT=/opt/android-sdk \
+    CARGO_HOME=/opt/cargo \
+    RUSTUP_HOME=/opt/rustup \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TZ=UTC
+
+# System dependencies: gcc-multilib for 32-bit Rust targets, git for version
+# derivation and submodules, unzip/curl for tool bootstrap.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc-multilib \
+        clang \
+        libclang-dev \
+        make \
+        cmake \
+        pkg-config \
+        git \
+        curl \
+        unzip \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Android SDK -------------------------------------------------------------
+RUN mkdir -p "${ANDROID_HOME}/cmdline-tools" \
+    && curl -fsSL -o /tmp/cmdline-tools.zip \
+        "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS_VERSION}_latest.zip" \
+    && unzip -q /tmp/cmdline-tools.zip -d "${ANDROID_HOME}/cmdline-tools" \
+    && mv "${ANDROID_HOME}/cmdline-tools/cmdline-tools" "${ANDROID_HOME}/cmdline-tools/latest" \
+    && rm /tmp/cmdline-tools.zip
+
+ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${CARGO_HOME}/bin:${PATH}"
+
+RUN yes | sdkmanager --licenses >/dev/null \
+    && sdkmanager --install \
+        "platforms;${ANDROID_PLATFORM}" \
+        "build-tools;${ANDROID_BUILD_TOOLS}" \
+        "build-tools;${ANDROID_BUILD_TOOLS_AGP_DEFAULT}" \
+        "ndk;${ANDROID_NDK}" \
+        "platform-tools" \
+    && rm -rf "${ANDROID_HOME}/.temp" "${ANDROID_HOME}/.android" \
+    && chmod -R a+rwX "${ANDROID_HOME}"
+
+# --- Rust (pinned stable) ----------------------------------------------------
+RUN curl -fsSL https://sh.rustup.rs | sh -s -- \
+        -y \
+        --no-modify-path \
+        --profile minimal \
+        --default-toolchain "${RUST_VERSION}" \
+        --target aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+# Gradle expects sdk.dir; provide it via env so builds don't need local.properties.
+ENV WEKIT_CONTAINER=1
+
+WORKDIR /workspace

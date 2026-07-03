@@ -12,13 +12,41 @@ plugins {
     alias(libs.plugins.aboutlibraries.android)
 }
 
+fun isGitWorktreeClean(): Boolean {
+    return providers.exec {
+        commandLine("git", "status", "--porcelain")
+    }.standardOutput.asText.get().trim().isEmpty()
+}
+
+fun getCommitTimeInMillis(): Long {
+    val commitTimeSeconds = providers.exec {
+        commandLine("git", "log", "-1", "--format=%ct")
+    }.standardOutput.asText.get().trim()
+
+    return commitTimeSeconds.toLong() * 1000L
+}
+
+/**
+ * Build timestamp for [BuildConfig.BUILD_TIMESTAMP], chosen for reproducibility:
+ *  1. `SOURCE_DATE_EPOCH` (seconds) if set — the reproducible-builds standard,
+ *     used by the container build so the value is pinned regardless of when it runs.
+ *  2. otherwise the HEAD commit time when the worktree is clean — deterministic
+ *     per commit.
+ *  3. otherwise the current wall-clock time — only for dirty local dev builds,
+ *     which are not expected to be reproducible.
+ */
+fun getBuildTimestampInMillis(): Long {
+    System.getenv("SOURCE_DATE_EPOCH")?.trim()?.toLongOrNull()?.let { return it * 1000L }
+    return if (isGitWorktreeClean()) getCommitTimeInMillis() else System.currentTimeMillis()
+}
+
 fun getCommitCount(): Int {
     return providers.exec {
         commandLine("git", "rev-list", "--count", "HEAD")
     }.standardOutput.asText.get().trim().toInt()
 }
 
-fun getGitHash(): String {
+fun getCommitHash(): String {
     return providers.exec {
         commandLine("git", "rev-parse", "--short", "HEAD")
     }.standardOutput.asText.get().trim()
@@ -34,7 +62,7 @@ android {
     ndkVersion = libs.versions.ndk.get()
 
     val commitCount = getCommitCount()
-    val gitHash = getGitHash()
+    val commitHash = getCommitHash()
 
     logger.lifecycle(
         """
@@ -53,11 +81,21 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = commitCount
-        versionName = "git+$gitHash"
+        versionName = "git+$commitHash"
 
-        buildConfigField("String", "GIT_HASH", "\"${gitHash}\"")
+        buildConfigField("String", "COMMIT_HASH", "\"${commitHash}\"")
         buildConfigField("String", "TAG", "\"WeKit\"")
-        buildConfigField("long", "BUILD_TIMESTAMP", "${System.currentTimeMillis()}L")
+        val buildTimestamp = getBuildTimestampInMillis()
+        buildConfigField("long", "BUILD_TIMESTAMP", "${buildTimestamp}L")
+    }
+
+    // AGP injects an encrypted "SDK dependency block" into the APK Signing Block
+    // (pair id 0x504b4453). Its ciphertext is non-deterministic, so it breaks
+    // byte-for-byte reproducibility. Disable it — the metadata is only consumed
+    // by Google Play, which this module is not distributed through.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     splits {
@@ -76,8 +114,6 @@ android {
 
     sourceSets["main"].jniLibs.directories += "src/main/jniLibs"
 
-    var foundKeystore = false
-
     @Suppress("LocalVariableName")
     signingConfigs {
         val _storeFile = System.getenv("WEKIT_KEYSTORE_FILE")
@@ -89,30 +125,39 @@ android {
         val _keyPassword = System.getenv("WEKIT_KEY_PASSWORD")
             ?: runCatching { project.property("WEKIT_KEY_PASSWORD") }.getOrNull() as? String?
 
-        if (_storeFile != null && _storePassword != null && _keyAlias != null && _keyPassword != null) {
-            create("release") {
-                foundKeystore = true
+        create("release") {
+            if (_storeFile != null && _storePassword != null && _keyAlias != null && _keyPassword != null) {
+                // Real release key (CI secret / local override).
                 storeFile = file(_storeFile)
                 storePassword = _storePassword
                 keyAlias = _keyAlias
                 keyPassword = _keyPassword
-
-                enableV1Signing = false
-                enableV2Signing = true
-                enableV3Signing = true
-                enableV4Signing = true
+            } else {
+                // Fixed debug key committed to the repo (not a secret). Using a
+                // stable key instead of AGP's per-machine random debug keystore
+                // makes the *entire* APK byte-for-byte reproducible: RSA
+                // PKCS#1-v1.5 signatures are deterministic for identical input.
+                storeFile = rootProject.file("reproducible/debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
             }
+
+            enableV1Signing = false
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
         }
     }
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName(if (foundKeystore) "release" else "debug")
+            signingConfig = signingConfigs.getByName("release")
         }
 
         release {
             optimization.enable = true
-            signingConfig = signingConfigs.getByName(if (foundKeystore) "release" else "debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -188,7 +233,10 @@ androidComponents {
             group = "wekit"
             description = "Embed eruda.min.js as a String constant for $variantName"
 
-            url.set("https://cdn.jsdelivr.net/npm/eruda@3.4.3/eruda.min.js")
+            // Vendored locally (eruda@3.4.3) for a hermetic, reproducible build.
+            // To update: replace the file and update the checksum below.
+            sourceFile.set(layout.projectDirectory.file("src/main/vendor/eruda/eruda.min.js"))
+            expectedSha256.set("1037b59d194a76c779dad1264811a995a933a23dd923110fff80ea6bf4254d5d")
             outputDir.set(layout.buildDirectory.dir("generated/source/eruda/${variant.name}"))
             namespace.set(libs.versions.namespace.get())
         }

@@ -1,10 +1,15 @@
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import java.net.URI
+import java.security.MessageDigest
 
 /**
  * JVM class-file CONSTANT_Utf8 entries are limited to 65535 bytes.
@@ -13,9 +18,20 @@ import java.net.URI
  */
 private const val MAX_PART_LENGTH = 64000
 
+/**
+ * Embeds a vendored eruda.min.js as a String constant. The source is a local
+ * file checked into the repo (not a network download) so the build is hermetic
+ * and reproducible. An optional SHA-256 guard fails the build if the vendored
+ * file is ever swapped for different content.
+ */
 abstract class EmbedErudaTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val sourceFile: RegularFileProperty
+
     @get:Input
-    abstract val url: Property<String>
+    @get:Optional
+    abstract val expectedSha256: Property<String>
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -25,7 +41,19 @@ abstract class EmbedErudaTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val jsContent = URI(url.get()).toURL().readText()
+        val srcFile = sourceFile.get().asFile
+        val bytes = srcFile.readBytes()
+
+        expectedSha256.orNull?.let { expected ->
+            val actual = MessageDigest.getInstance("SHA-256").digest(bytes)
+                .joinToString("") { "%02x".format(it) }
+            check(actual.equals(expected, ignoreCase = true)) {
+                "eruda.min.js checksum mismatch: expected $expected but got $actual " +
+                    "(source: ${srcFile.absolutePath}). Refusing to build with unexpected content."
+            }
+        }
+
+        val jsContent = String(bytes, Charsets.UTF_8)
         val pkg = namespace.get()
         val outDir = outputDir.get().asFile
         val outputFile = outDir.resolve("${pkg.replace(".", "/")}/eruda/ErudaProvider.kt")

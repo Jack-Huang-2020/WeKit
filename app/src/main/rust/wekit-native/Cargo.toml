@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 jni = { version = "0.22", default-features = false }
 libc = "0.2"
 markdown = "1"
-silk-v3-sys = { git = "https://github.com/Ujhhgtg/silk-v3-sys.git" }
+silk-v3-sys = { git = "https://github.com/Ujhhgtg/silk-v3-sys.git", rev = "336ac8a8962bce7e4948820fc58379e9f716be90" }
 symphonia = { version = "0.6", features = [
     "mp3",
     "aac",

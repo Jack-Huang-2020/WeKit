@@ -54,9 +54,13 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
+      # Rust toolchain is pinned in app/src/main/rust/wekit-native/rust-toolchain.toml
+      # (stable, with the Android targets). rustup honours that file automatically,
+      # so we only need rustup present; no channel is specified here.
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: "1.96.1"
           targets: aarch64-linux-android,x86_64-linux-android,armv7-linux-androideabi,i686-linux-android
 
       - name: Rust cache
@@ -84,6 +88,9 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/wekit-keystore.jks
 
+      - name: Set SOURCE_DATE_EPOCH (reproducible build timestamp)
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       - name: Build Release (Signed)
         if: github.event_name != 'pull_request'
         env:
@@ -99,6 +106,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew assembleRelease --warning-mode all --stacktrace
+
+      - name: Compute signature-independent APK hashes
+        run: |
+          python3 reproducible/strip-sigblock-hash.py \
+            app/build/outputs/apk/release/*.apk \
+            | tee app/build/outputs/apk/release/content-sha256.txt
+
+      - name: Upload signature-independent hashes
+        uses: actions/upload-artifact@v7
+        with:
+          name: wekit-content-hashes
+          path: app/build/outputs/apk/release/content-sha256.txt
 
       - name: Upload Release APKs
         uses: actions/upload-artifact@v7
@@ -130,6 +149,12 @@ jobs:
           name: wekit-apk
           path: artifacts
 
+      - name: Download signature-independent hashes
+        uses: actions/download-artifact@v8
+        with:
+          name: wekit-content-hashes
+          path: artifacts
+
       - name: Delete existing CI release (if exists)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -140,15 +165,22 @@ jobs:
       - name: Generate update.json
         run: |
           COMMIT_COUNT=$(git rev-list --count HEAD)
-          GIT_HASH=$(git rev-parse --short HEAD)
+          COMMIT_HASH=$(git rev-parse --short HEAD)
 
-          cat > artifacts/update.json <<EOF
-          {
-            "versionCode": ${COMMIT_COUNT},
-            "versionName": "git+${GIT_HASH}",
-            "commit": "${GIT_HASH}"
-          }
-          EOF
+          # Turn "<sha256>  <path>/<name>.apk" lines into { "<name>.apk": "<sha256>" }.
+          # These are signature-independent content hashes, so anyone can rebuild
+          # the commit and confirm a match without the signing key.
+          CONTENT_JSON=$(awk '{ n=$2; sub(/.*\//,"",n); printf "%s%s\"%s\":\"%s\"", (NR>1?",":""), "", n, $1 }' \
+            artifacts/content-sha256.txt)
+          CONTENT_JSON="{${CONTENT_JSON}}"
+
+          jq -n \
+            --argjson versionCode "$COMMIT_COUNT" \
+            --arg versionName "git+${COMMIT_HASH}" \
+            --arg commit "$COMMIT_HASH" \
+            --argjson contentSha256 "$CONTENT_JSON" \
+            '{versionCode: $versionCode, versionName: $versionName, commit: $commit, contentSha256: $contentSha256}' \
+            > artifacts/update.json
 
           echo "Generated update.json:"
           cat artifacts/update.json

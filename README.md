@@ -4,6 +4,8 @@
 
 [![CI 状态](https://github.com/Ujhhgtg/WeKit/actions/workflows/ci.yml/badge.svg)](https://github.com/Ujhhgtg/WeKit/actions/workflows/ci.yml)
 
+[![Reproducible Builds](https://img.shields.io/badge/Reproducible_Builds-enabled-brightgreen?logo=gitbook&logoColor=white)](https://reproducible-builds.org/)
+
 ## 文档
 
 请参阅 [文档](https://ujhhgtgteams.gitbook.io/wekit-docs) 以使用本模块。
