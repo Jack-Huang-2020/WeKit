@@ -6,7 +6,6 @@ import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
-import dev.ujhhgtg.wekit.utils.reflection.BString
 import dev.ujhhgtg.wekit.utils.reflection.int
 import java.lang.reflect.Modifier
 
@@ -43,8 +42,7 @@ object UnlockCustomEmojiLimit : SwitchFeature(), IResolveDex {
     private val methodGetMmkv by dexMethod {
         matcher {
             declaredClass(classMmkv.clazz)
-            paramTypes(BString)
-            returnType(classMmkv.clazz)
+            usingEqStrings("MicroMsg.MultiProcessMMKV", "getMMKV name is illegal")
         }
     }
 
@@ -77,7 +75,7 @@ object UnlockCustomEmojiLimit : SwitchFeature(), IResolveDex {
 
     private fun putCustomFullFalseInMmkv() {
         runCatching {
-            val mmkv = methodGetMmkv.method.invoke(null, "emoji_stg")
+            val mmkv = methodGetMmkv.method.invoke(null, "emoji_stg", 2, null)
             mmkv.reflekt().invokeMethod("putBoolean", "custom_full", false)
         }
     }
