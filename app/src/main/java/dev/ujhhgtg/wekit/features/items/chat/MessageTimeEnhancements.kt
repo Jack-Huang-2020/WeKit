@@ -217,33 +217,9 @@ object MessageTimeEnhancements : ClickableFeature(),
                     lp.removeRule(RelativeLayout.ALIGN_PARENT_END)
                     lp.addRule(RelativeLayout.ALIGN_PARENT_START)
 
-                    // Resolve avatar to check if it's currently hidden
-                    if (!::avatarField.isInitialized) {
-                        avatarField = tag.reflekt()
-                            .firstField { name = "avatarIV"; superclass() }.self
-                    }
-                    val avatar = avatarField.get(tag) as View?
-                    val avatarContainer = avatar?.parent as? View ?: avatar
+                    lp.marginStart = edgeMarginPx
 
-                    if (avatarContainer != null && avatarContainer.visibility != View.VISIBLE) {
-                        // If the avatar is hidden, shift the timestamp right to align under the bubble.
-                        // Uses measured width if available; otherwise falls back to 52dp (40dp avatar + 12dp spacing).
-                        val avatarWidthPx = if (avatarContainer.width > 0) {
-                            avatarContainer.width
-                        } else {
-                            TypedValue.applyDimension(
-                                TypedValue.COMPLEX_UNIT_DIP,
-                                52f,
-                                context.resources.displayMetrics
-                            ).toInt()
-                        }
-                        lp.marginStart = edgeMarginPx + avatarWidthPx
-                    } else {
-                        // Default edge spacing when avatar is visible
-                        lp.marginStart = edgeMarginPx
-                    }
-
-                    lp.marginEnd = 0 // Clear opposing margin to prevent bugs on view recycling
+                    lp.marginEnd = 0
                     time.gravity = Gravity.START
                 }
             }

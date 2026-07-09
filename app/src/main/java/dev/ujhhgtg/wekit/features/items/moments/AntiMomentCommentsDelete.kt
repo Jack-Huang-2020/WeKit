@@ -129,8 +129,8 @@ object AntiMomentCommentsDelete : SwitchFeature(), IResolveDex {
         ).forEach {
             if (it.isPlaceholder) return@forEach
             it.hookBefore {
-                val table = args[0] as? String ?: return@hookBefore
-                val sql = args[1] as? String ?: return@hookBefore
+                val table = args.getOrNull(0) as? String ?: return@hookBefore
+                val sql = args.getOrNull(1) as? String ?: return@hookBefore
                 if (table == SNS_COMMENT && sql.lowercase().contains("delete from")) {
                     result = false
                 }

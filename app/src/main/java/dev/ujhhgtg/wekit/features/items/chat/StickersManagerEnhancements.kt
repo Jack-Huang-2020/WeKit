@@ -11,6 +11,7 @@ import android.widget.TextView
 import com.tencent.mm.api.IEmojiInfo
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.toClass
+import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.ui.utils.findViewWhich
@@ -85,6 +86,7 @@ object StickersManagerEnhancements : SwitchFeature() {
         val btnSelectAll = makeBtn("全选")
         val btnSelectNone = makeBtn("全不选")
         val btnInvert = makeBtn("反选")
+        val btnExport = makeBtn("导出")
 
         val parentContainer = moveTv.parent as ViewGroup
         val index = parentContainer.indexOfChild(moveTv)
@@ -111,6 +113,7 @@ object StickersManagerEnhancements : SwitchFeature() {
         wrapper.addView(btnSelectAll)
         wrapper.addView(btnSelectNone)
         wrapper.addView(btnInvert)
+        wrapper.addView(btnExport)
 
         parentContainer.addView(wrapper, index)
 
@@ -140,6 +143,13 @@ object StickersManagerEnhancements : SwitchFeature() {
             runCatching {
                 doInvert(act, recyclerRef, mpfRef, mpgRef, baseDeleteText)
             }.onFailure { e -> WeLogger.e(TAG, "failed to invert selection", e) }
+        }
+
+        btnExport.setOnClickListener {
+            val act = activityRef.get() ?: return@setOnClickListener
+            runCatching {
+                doExport(act)
+            }.onFailure { e -> WeLogger.e(TAG, "failed to export selection", e) }
         }
     }
 
@@ -282,5 +292,20 @@ object StickersManagerEnhancements : SwitchFeature() {
 
         syncAdapter(adapter, selection)
         updateFooter(selection, mpfRef, mpgRef, baseDeleteText)
+    }
+
+    private fun doExport(activity: Activity) {
+        val selection = activitySelectionList(activity)
+
+        // Build an O(1) lookup of currently-selected md5s.
+        val selectedMd5s: Set<String> = selection.mapNotNull {
+            runCatching { (it as IEmojiInfo).getMd5() }.getOrNull()
+        }.toHashSet()
+
+        val baseName = System.currentTimeMillis().toString()
+
+        selectedMd5s.forEachIndexed { index, md5 ->
+            WeMessageApi.saveStickerByMd5(md5, "sticker_${baseName}_$index.gif")
+        }
     }
 }

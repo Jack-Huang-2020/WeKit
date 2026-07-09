@@ -168,7 +168,6 @@ class MsgInfoBean(
 
     @Keep
     class ImageMsg(val msg: MessageInfo.ImageMessage) {
-
         fun getAesKey(): String = msg.aesKey
         fun getCdnUrl(): String = msg.thumbUrl
         fun getMd5(): String = msg.md5

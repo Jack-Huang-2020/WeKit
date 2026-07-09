@@ -1668,7 +1668,7 @@ object WeMessageApi : ApiFeature(), IResolveDex {
      * 根据 md5 解密贴纸, 转为 GIF 并保存到 Download/WeKit/。
      * @return 保存后的文件路径, 失败返回 null
      */
-    fun saveStickerByMd5(md5: String): String? {
+    fun saveStickerByMd5(md5: String, fileName: String? = null): String? {
         return try {
             val emojiInfo = WeServiceApi.getEmojiInfoByMd5(md5)
             val emojiFileEncryptMgr = classEmojiFileEncryptMgr.reflekt()
@@ -1685,7 +1685,7 @@ object WeMessageApi : ApiFeature(), IResolveDex {
                 .invoke(emojiInfo) as ByteArray
             bytes = MMWXGFJNI.nativeWxamToGif(bytes)
 
-            val outPath = KnownPaths.downloads / "sticker_${System.currentTimeMillis()}.gif"
+            val outPath = KnownPaths.downloads / (fileName ?: "sticker_${System.currentTimeMillis()}.gif")
             outPath.deleteIfExists()
             outPath.outputStream().use { it.write(bytes) }
             WeLogger.i(TAG, "saved sticker: $outPath")

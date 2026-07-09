@@ -6,8 +6,8 @@ import android.content.ContentValues
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.features.api.core.WeApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
-import dev.ujhhgtg.wekit.utils.serialization.DefaultJson
 import dev.ujhhgtg.wekit.utils.serialization.NativeXmlParser
+import dev.ujhhgtg.wekit.utils.serialization.XmlArray
 import dev.ujhhgtg.wekit.utils.serialization.asInt
 import dev.ujhhgtg.wekit.utils.serialization.asLong
 import dev.ujhhgtg.wekit.utils.serialization.asString
@@ -220,25 +220,22 @@ class MessageInfo(val instance: Any) {
         val aesKey by lazy { xml.getByPath("msg.img.aeskey")!!.asString }
     }
 
-    class PatMessage(jsonStr: String) {
+    class PatMessage(xmlStr: String) {
 
-        private val json = DefaultJson.parseToJsonElement(jsonStr)
+        private val xml = NativeXmlParser.toXmlObject(xmlStr.cleanupXml())
 
         val createTime by lazy { recordObj["createTime"]!!.asLong }
         val fromUser by lazy { recordObj["fromUser"]!!.asString }
         val pattedUser by lazy { recordObj["pattedUser"]!!.asString }
         val readStatus by lazy { recordObj["readStatus"]!!.asInt }
-        val recordNum by lazy { json.getByPath("msg.appmsg.patMsg.records.recordNum")!!.asInt }
+        val recordNum by lazy { xml.getByPath("msg.appmsg.patMsg.records.recordNum")!!.asInt }
         val showModifyTip by lazy { recordObj["showModifyTip"]!!.asInt }
         val svrId by lazy { recordObj["svrId"]!!.asLong }
-        val talker by lazy { json.getByPath("msg.appmsg.patMsg.chatUser")!!.asString }
+        val talker by lazy { xml.getByPath("msg.appmsg.patMsg.chatUser")!!.asString }
         val template by lazy { recordObj["template"]!!.asString }
         val recordObj: JsonElement by lazy {
-            val byPath = json.getByPath("msg.appmsg.patMsg.records.record")!!
-            if (byPath is JsonArray) {
-                return@lazy byPath.jsonArray[0]
-            }
-            return@lazy byPath
+            val byPath = xml.getByPath("msg.appmsg.patMsg.records.record")!!
+            error("")
         }
     }
 

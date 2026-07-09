@@ -187,7 +187,7 @@ object ReadReceipts : ClickableFeature(), WeChatMessageViewApi.ICreateViewListen
             val target = WeCurrentConversationApi.value
 
             val xml =
-                """
+            """
             <msg>
               <appmsg appid="" sdkver="0">
                 <title>$escapedText</title>

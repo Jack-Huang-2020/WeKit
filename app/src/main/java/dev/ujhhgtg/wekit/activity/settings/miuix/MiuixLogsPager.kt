@@ -1,4 +1,4 @@
-package dev.ujhhgtg.wekit.activity.settings
+package dev.ujhhgtg.wekit.activity.settings.miuix
 
 import android.content.Context
 import android.content.Intent
@@ -60,6 +60,7 @@ import com.composables.icons.materialsymbols.outlined.Share
 import com.composables.icons.materialsymbols.outlined.Vertical_align_bottom
 import com.composables.icons.materialsymbols.outlined.Vertical_align_top
 import dev.ujhhgtg.wekit.activity.TransparentActivity
+import dev.ujhhgtg.wekit.activity.settings.LocalComponentActivity
 import dev.ujhhgtg.wekit.ui.content.liquid.vibrancy
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
@@ -101,17 +102,17 @@ import kotlin.io.path.name
 import kotlin.io.path.readText
 import androidx.compose.animation.core.tween as animTween
 
-private val LOGS_TAG = "SettingsActivity"
+private const val LOGS_TAG = "SettingsActivity"
 
 /** Which log kind a page is showing. */
-private enum class LogKind { RUN, CRASH }
+internal enum class LogKind { RUN, CRASH }
 
 // ---------------------------------------------------------------------------
 //  Parsed models
 // ---------------------------------------------------------------------------
 
 /** One run-log entry: a header line plus any continuation (stack-trace) lines folded into [message]. */
-private data class RunLogEntry(
+internal data class RunLogEntry(
     val time: String?,
     val level: Char?,
     val tag: String?,
@@ -119,7 +120,7 @@ private data class RunLogEntry(
 )
 
 /** One crash-report section: a "==== Title ====" block and the body lines beneath it. */
-private data class CrashSection(
+internal data class CrashSection(
     val title: String,
     val body: String,
 )
@@ -139,7 +140,7 @@ private val RUN_LOG_REGEX = Regex(
  * card; any other line (stack-trace continuation, multi-line message) folds into the previous card
  * so multi-line entries stay together. Leading orphan lines become metadata-less cards.
  */
-private fun parseRunLog(text: String): List<RunLogEntry> {
+internal fun parseRunLog(text: String): List<RunLogEntry> {
     val out = ArrayList<RunLogEntry>()
     for (line in text.lineSequence()) {
         if (line.isEmpty() && out.isEmpty()) continue
@@ -173,7 +174,7 @@ private fun parseRunLog(text: String): List<RunLogEntry> {
  * sequence of `"===="` fenced blocks: a fence line, a title line, a fence line, then the body up to
  * the next fence. Any preamble before the first section becomes its own untitled card.
  */
-private fun parseCrashLog(text: String): List<CrashSection> {
+internal fun parseCrashLog(text: String): List<CrashSection> {
     val lines = text.lines()
     val fence = "========================================"
     val out = ArrayList<CrashSection>()
@@ -213,7 +214,7 @@ private fun parseCrashLog(text: String): List<CrashSection> {
  * (`<host>.external.fileprovider`, whose paths cover external + root storage) since this activity
  * runs inside the host process. Falls back to sharing the file's text inline if the provider throws.
  */
-private fun shareLogFile(context: Context, file: Path) {
+internal fun shareLogFile(context: Context, file: Path) {
     val f = file.toFile()
     val authority = "${HostInfo.packageName}.external.fileprovider"
     val sendIntent = runCatching {
@@ -242,7 +243,7 @@ private fun shareLogFile(context: Context, file: Path) {
  * Opens the system document creator so the user can save a copy of [file] wherever they choose,
  * mirroring the config-export flow in SettingsActivity.
  */
-private fun saveLogFile(context: Context, file: Path) {
+internal fun saveLogFile(context: Context, file: Path) {
     TransparentActivity.launch(context) {
         val launcher = registerForActivityResult(
             ActivityResultContracts.CreateDocument("text/plain"),
@@ -269,14 +270,14 @@ private fun saveLogFile(context: Context, file: Path) {
 // Bottom padding so scrollable content clears the floating bar (mirrors SettingsActivity's inset).
 private val LOGS_BOTTOM_INSET = 88.dp
 
-private val LOG_TABS = listOf("运行日志" to LogKind.RUN, "崩溃日志" to LogKind.CRASH)
+internal val LOG_TABS = listOf("运行日志" to LogKind.RUN, "崩溃日志" to LogKind.CRASH)
 
 // ---------------------------------------------------------------------------
 //  Page 2 — Logs
 // ---------------------------------------------------------------------------
 
 @Composable
-fun LogsPager() {
+fun MiuixLogsPager() {
     val context = LocalComponentActivity.current
     val scope = rememberCoroutineScope()
 
@@ -525,7 +526,7 @@ private fun LogTabContent(
 }
 
 /** Reads the full log file (modern devices handle multi-MB logs fine). */
-private fun readLog(file: Path): String =
+internal fun readLog(file: Path): String =
     runCatching { file.readText() }.getOrElse { "读取日志失败: ${it.message}" }
 // ---------------------------------------------------------------------------
 //  File selector + cards + empty state
@@ -556,7 +557,7 @@ private fun FileSelector(
 }
 
 /** Long messages (over this many lines) collapse to a preview with an expand toggle. */
-private const val RUN_LOG_COLLAPSE_LINES = 5
+internal const val RUN_LOG_COLLAPSE_LINES = 5
 
 @Composable
 private fun RunLogCard(entry: RunLogEntry) {
@@ -686,7 +687,7 @@ private fun LogsEmpty(text: String) {
 }
 
 /** Log-level chip background color, matching the run-log level chars WeLogger emits. */
-private fun levelColor(level: Char): Color = when (level) {
+internal fun levelColor(level: Char): Color = when (level) {
     'E', 'F', 'A' -> Color(0xFFD32F2F)
     'W' -> Color(0xFFF57C00)
     'I' -> Color(0xFF388E3C)

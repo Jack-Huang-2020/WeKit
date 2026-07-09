@@ -141,13 +141,13 @@ private fun TriggerCard(
     }
 }
 
-private fun typeLabel(type: TriggerType): String = when (type) {
+internal fun typeLabel(type: TriggerType): String = when (type) {
     TriggerType.SCHEDULE -> "定时"
     TriggerType.MESSAGE -> "新消息"
     TriggerType.SQL -> "数据库"
 }
 
-private fun configSummary(t: TriggerEntity): String = when (t.type) {
+internal fun configSummary(t: TriggerEntity): String = when (t.type) {
     TriggerType.SCHEDULE -> when (t.scheduleKind) {
         ScheduleKind.INTERVAL -> "每 ${t.intervalSeconds ?: 0} 秒"
         ScheduleKind.DAILY -> {
@@ -424,7 +424,7 @@ private fun OpToggle(label: String, checked: Boolean, onChange: (Boolean) -> Uni
 }
 
 /** Assembles a [TriggerEntity] from the editor fields, preserving id/scope/session for edits. */
-private fun buildTrigger(
+internal fun buildTrigger(
     existing: TriggerEntity?,
     name: String,
     promptTemplate: String,

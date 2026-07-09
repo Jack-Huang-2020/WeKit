@@ -25,7 +25,7 @@ object PreventXposedDetection : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        if (methodCheckStackTraceElements.isPlaceholder) return
+        if (methodCheckStackTraceElements.isPlaceholder || HostInfo.isHostGooglePlay) return
 
         methodCheckStackTraceElements.hookBefore {
             result = false

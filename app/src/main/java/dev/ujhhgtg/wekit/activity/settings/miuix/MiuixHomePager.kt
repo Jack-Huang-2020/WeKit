@@ -1,4 +1,4 @@
-package dev.ujhhgtg.wekit.activity.settings
+package dev.ujhhgtg.wekit.activity.settings.miuix
 
 import android.content.ComponentName
 import android.content.Context
@@ -33,6 +33,8 @@ import androidx.core.net.toUri
 import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Check_circle
 import dev.ujhhgtg.wekit.BuildConfig
+import dev.ujhhgtg.wekit.activity.settings.CONTENT_BOTTOM_INSET
+import dev.ujhhgtg.wekit.activity.settings.MiuixListScaffold
 import dev.ujhhgtg.wekit.features.core.FeaturesProvider
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.HostInfo
@@ -60,7 +62,7 @@ import top.yukonga.miuix.kmp.utils.PressFeedbackType
  *  2. Broadcast the `*#*#5776733#*#*` SECRET_CODE (action differs on API >= 29) as a fallback
  *     for setups where the activity trick is unavailable.
  */
-private fun openLsposedManager(context: Context) {
+internal fun openLsposedManager(context: Context) {
     val managerPackage = "org.lsposed.manager"
     val injectedPackage = "com.android.shell"
 
@@ -87,7 +89,7 @@ private fun openLsposedManager(context: Context) {
 }
 
 @Composable
-fun HomePager(onOpenFeatures: () -> Unit) {
+fun MiuixHomePager(onOpenFeatures: () -> Unit) {
     val enabledCount = remember {
         FeaturesProvider.ALL_HOOK_ITEMS.count { WePrefs.getBoolOrFalse(it.name) }
     }

@@ -1,4 +1,4 @@
-package dev.ujhhgtg.wekit.activity.settings
+package dev.ujhhgtg.wekit.activity.settings.miuix
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -20,6 +20,11 @@ import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Arrow_back
 import com.composables.icons.materialsymbols.outlined.Close
 import com.composables.icons.materialsymbols.outlined.Search
+import dev.ujhhgtg.wekit.activity.settings.CONTENT_BOTTOM_INSET
+import dev.ujhhgtg.wekit.activity.settings.FEATURE_CATEGORIES
+import dev.ujhhgtg.wekit.activity.settings.FeatureRow
+import dev.ujhhgtg.wekit.activity.settings.MiuixListScaffold
+import dev.ujhhgtg.wekit.activity.settings.groupedCardItem
 import dev.ujhhgtg.wekit.features.core.FeaturesProvider
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.features.items.easter_egg.AprilFools
@@ -44,7 +49,7 @@ import java.time.LocalDate
 // ---------------------------------------------------------------------------
 
 @Composable
-fun FeaturesPager(onOpenCategory: (String) -> Unit) {
+fun MiuixFeaturesPager(onOpenCategory: (String) -> Unit) {
     val showAprilFools = remember { LocalDate.now().isAprilFools }
 
     val queryState = rememberTextFieldState()
@@ -175,7 +180,7 @@ fun FeaturesPager(onOpenCategory: (String) -> Unit) {
 }
 
 // ---------------------------------------------------------------------------
-//  Category detail (replaces CategorySettingsScreen)
+//  Category detail
 // ---------------------------------------------------------------------------
 
 @Composable

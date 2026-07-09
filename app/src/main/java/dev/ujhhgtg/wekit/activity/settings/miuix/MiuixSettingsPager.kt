@@ -1,4 +1,4 @@
-package dev.ujhhgtg.wekit.activity.settings
+package dev.ujhhgtg.wekit.activity.settings.miuix
 
 
 import android.content.Context
@@ -53,6 +53,7 @@ import com.composables.icons.materialsymbols.outlined.Delete_forever
 import com.composables.icons.materialsymbols.outlined.Download
 import com.composables.icons.materialsymbols.outlined.Frame_bug
 import com.composables.icons.materialsymbols.outlined.Label
+import com.composables.icons.materialsymbols.outlined.Layers
 import com.composables.icons.materialsymbols.outlined.License
 import com.composables.icons.materialsymbols.outlined.Lightbulb_2
 import com.composables.icons.materialsymbols.outlined.Notifications
@@ -71,6 +72,9 @@ import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.aboutlibraries.AboutLibrariesProvider
 import dev.ujhhgtg.wekit.activity.TransparentActivity
+import dev.ujhhgtg.wekit.activity.settings.CONTENT_BOTTOM_INSET
+import dev.ujhhgtg.wekit.activity.settings.LocalComponentActivity
+import dev.ujhhgtg.wekit.activity.settings.MiuixListScaffold
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
 import dev.ujhhgtg.wekit.features.items.debug.ResetDexCache
@@ -81,6 +85,7 @@ import dev.ujhhgtg.wekit.ui.utils.TelegramIcon
 import dev.ujhhgtg.wekit.ui.utils.theme.AppColorSpec
 import dev.ujhhgtg.wekit.ui.utils.theme.AppPaletteStyle
 import dev.ujhhgtg.wekit.ui.utils.theme.AppThemeMode
+import dev.ujhhgtg.wekit.ui.utils.theme.AppUiEngine
 import dev.ujhhgtg.wekit.ui.utils.theme.ThemeSettings
 import dev.ujhhgtg.wekit.utils.AppUpdater
 import dev.ujhhgtg.wekit.utils.HostInfo
@@ -131,7 +136,7 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 // ---------------------------------------------------------------------------
 
 @Composable
-fun SettingsPager(onOpenLicense: () -> Unit) {
+fun MiuixSettingsPager(onOpenLicense: () -> Unit) {
     val context = LocalComponentActivity.current
 
     var showClearConfirm by remember { mutableStateOf(false) }
@@ -248,8 +253,16 @@ fun SettingsPager(onOpenLicense: () -> Unit) {
         item {
             MiuixSmallTitle(text = "关于", modifier = Modifier.padding(top = 12.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
-                PrefArrow(title = "版本", summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", icon = MaterialSymbols.Outlined.Label)
-                PrefArrow(title = "构建提交时间", summary = formatEpoch(BuildConfig.BUILD_TIMESTAMP, true), icon = MaterialSymbols.Outlined.Build_circle)
+                PrefArrow(
+                    title = "版本",
+                    summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    icon = MaterialSymbols.Outlined.Label
+                )
+                PrefArrow(
+                    title = "构建提交时间",
+                    summary = formatEpoch(BuildConfig.BUILD_TIMESTAMP, true),
+                    icon = MaterialSymbols.Outlined.Build_circle
+                )
                 PrefArrow(
                     title = "提示",
                     summary = "牙膏要一点一点挤, 显卡要一刀一刀切, PPT 要一张一张放, 代码要一行一行写, 单个功能预计自出现在 commit 之日起, 三年内开发完毕",
@@ -261,7 +274,10 @@ fun SettingsPager(onOpenLicense: () -> Unit) {
                     icon = MaterialSymbols.Outlined.Volunteer_activism,
                     onClick = {
                         context.startActivity(Intent().apply {
-                            setClassName(HostInfo.packageName, "${PackageNames.WECHAT}.plugin.collect.reward.ui.QrRewardSelectMoneyUI")
+                            setClassName(
+                                HostInfo.packageName,
+                                "${PackageNames.WECHAT}.plugin.collect.reward.ui.QrRewardSelectMoneyUI"
+                            )
                             putExtra("key_qrcode_url", "m0n#Z7LGW*s4AVH!z'd(?)")
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         })
@@ -277,12 +293,16 @@ fun SettingsPager(onOpenLicense: () -> Unit) {
                     title = "GitHub",
                     summary = "Ujhhgtg/WeKit",
                     icon = GitHubIcon,
-                    onClick = { "https://github.com/Ujhhgtg/WeKit".toUri().openInSystem(context, true) })
+                    onClick = {
+                        "https://github.com/Ujhhgtg/WeKit".toUri().openInSystem(context, true)
+                    })
                 PrefArrow(
                     title = "Telegram",
                     summary = "Telegram 超级群组",
                     icon = TelegramIcon,
-                    onClick = { "https://t.me/+7j5dJ6g16B43OWVl".toUri().openInSystem(context, true) })
+                    onClick = {
+                        "https://t.me/+7j5dJ6g16B43OWVl".toUri().openInSystem(context, true)
+                    })
             }
         }
 
@@ -318,6 +338,15 @@ private fun <T> EnumDropdown(
 
 @Composable
 private fun ThemeSection() {
+    EnumDropdown(
+        title = "UI 组件引擎",
+        entries = AppUiEngine.entries,
+        selected = ThemeSettings.uiEngine,
+        labelOf = { it.displayName },
+        onSelected = { ThemeSettings.updateUiEngine(it) },
+        icon = MaterialSymbols.Outlined.Layers,
+    )
+
     EnumDropdown(
         title = "主题模式",
         entries = AppThemeMode.entries,
@@ -509,7 +538,7 @@ private fun PrefIcon(icon: ImageVector) {
 //  Config import / export / clear / update / search (migrated verbatim)
 // ---------------------------------------------------------------------------
 
-private fun exportConfig(context: Context) {
+internal fun exportConfig(context: Context) {
     TransparentActivity.launch(context) {
         val exportLauncher = registerForActivityResult(
             ActivityResultContracts.CreateDocument("application/json")
@@ -556,7 +585,7 @@ private fun exportConfig(context: Context) {
     }
 }
 
-private fun importConfig(context: Context) {
+internal fun importConfig(context: Context) {
     TransparentActivity.launch(context) {
         val importLauncher = registerForActivityResult(
             ActivityResultContracts.OpenDocument()
@@ -605,7 +634,7 @@ private fun importConfig(context: Context) {
     }
 }
 
-private fun checkForUpdate(
+internal fun checkForUpdate(
     onAvailable: (UpdateResult.UpdateAvailable) -> Unit,
     onError: (String) -> Unit,
 ) {

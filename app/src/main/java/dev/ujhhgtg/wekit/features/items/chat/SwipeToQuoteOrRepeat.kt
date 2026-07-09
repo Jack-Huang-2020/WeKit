@@ -81,7 +81,7 @@ object SwipeToQuoteOrRepeat : ClickableFeature(), IResolveDex,
     private val overlayInterpolator = OvershootInterpolator(0.7f)
 
     private var repeatOnSwipeRight by prefOption("swipe_to_quote_or_repeat_right_repeat", false)
-    private var swapDirections by prefOption("swipe_to_quote_or_repeat_swap_directions", false)
+    private var swapDirections by prefOption("swipe_to_quote_or_repeat_swap_dir", false)
 
     // com.tencent.mm.ui.chatting.viewitems.ChattingItemContainer (obfuscated: xg / li). This
     // RelativeLayout is the SHARED root of every message item type (each ChattingItem.F() wraps its
@@ -443,7 +443,7 @@ object SwipeToQuoteOrRepeat : ClickableFeature(), IResolveDex,
         fun circleColor(dark: Boolean) = if (dark) circleDark else circleLight
     }
 
-    @SuppressLint("AppCompatCustomView") // not necessary
+    @SuppressLint("AppCompatCustomView")
     private class SwipeActionIconView(
         context: Context,
         iconDrawable: Drawable,
@@ -468,8 +468,8 @@ object SwipeToQuoteOrRepeat : ClickableFeature(), IResolveDex,
     }
 
     // Returns whether a physical direction maps to the repeat action (vs. quote).
-    // repeat direction = LEFT when not swapped, RIGHT when swapped.
-    private fun isRepeatDirection(dir: DragDirection) = (dir == DragDirection.LEFT) xor swapDirections
+    // repeat direction = RIGHT when not swapped, LEFT when swapped.
+    private fun isRepeatDirection(dir: DragDirection) = (dir == DragDirection.RIGHT) xor swapDirections
 
     private fun detectDragDirection(dx: Float, dy: Float, s: SwipeState): DragDirection? {
         if (abs(dx) <= s.touchSlop || abs(dx) <= abs(dy)) return null
@@ -499,8 +499,8 @@ object SwipeToQuoteOrRepeat : ClickableFeature(), IResolveDex,
                             trailingContent = {
                                 Switch(checked = repeatOnRight, onCheckedChange = null)
                             },
-                            supportingContent = { Text("启用后, 在支持的消息上左划可直接复读") },
-                            headlineContent = { Text("左划复读") },
+                            supportingContent = { Text("启用后, 在支持的消息上右划可直接复读") },
+                            headlineContent = { Text("右划复读") },
                         )
                         ListItem(
                             modifier = Modifier.clickable {
@@ -510,7 +510,7 @@ object SwipeToQuoteOrRepeat : ClickableFeature(), IResolveDex,
                             trailingContent = {
                                 Switch(checked = swap, onCheckedChange = null)
                             },
-                            supportingContent = { Text("启用后, 左划引用, 右划复读") },
+                            supportingContent = { Text("启用后, 左划复读, 右划引用") },
                             headlineContent = { Text("对调左右划") },
                         )
                     }
