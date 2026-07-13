@@ -8,9 +8,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 /** Shared JSON config + helpers for the LLM adapters. */
 object LlmJson {
@@ -64,6 +61,7 @@ internal fun parseUsage(usage: JsonObject?): LlmUsage? {
 /** Drains the rest of a channel as UTF-8 text (used for error bodies). */
 internal suspend fun ByteReadChannel.readRemainingText(): String = buildString {
     while (true) {
+        @Suppress("DEPRECATION")
         val line = readUTF8Line() ?: break
         append(line).append('\n')
     }

@@ -68,6 +68,7 @@ class AnthropicMessagesClient(
 
         val textBuf = StringBuilder()
         val reasoningBuf = StringBuilder()
+        val signatureBuf = StringBuilder()
         val blocks = sortedMapOf<Int, ToolUseBlock>()
         var stopReason: String? = null
         var inputTokens: Int? = null
@@ -75,6 +76,7 @@ class AnthropicMessagesClient(
 
         val channel = resp.bodyAsChannel()
         while (true) {
+            @Suppress("DEPRECATION")
             val line = channel.readUTF8Line() ?: break
             val data = SseParser.dataOrNull(line) ?: continue
             val event = runCatching { LlmJson.json.parseToJsonElement(data).jsonObject }.getOrNull() ?: continue
@@ -109,6 +111,11 @@ class AnthropicMessagesClient(
                         }
                         "thinking_delta" -> delta["thinking"]?.jsonPrimitive?.contentOrNullSafe()?.let {
                             reasoningBuf.append(it); emit(LlmStreamEvent.ReasoningDelta(it))
+                        }
+                        // signature_delta carries the encrypted thinking-block signature that Anthropic
+                        // requires to be replayed verbatim when this turn appears in later history.
+                        "signature_delta" -> delta["signature"]?.jsonPrimitive?.contentOrNullSafe()?.let {
+                            signatureBuf.append(it)
                         }
                         "input_json_delta" -> delta["partial_json"]?.jsonPrimitive?.contentOrNullSafe()?.let {
                             blocks[index]?.args?.append(it)
@@ -152,6 +159,7 @@ class AnthropicMessagesClient(
                     role = LlmRole.ASSISTANT,
                     content = textBuf.toString().ifEmpty { null },
                     reasoning = reasoningBuf.toString().ifEmpty { null },
+                    reasoningSignature = signatureBuf.toString().ifEmpty { null },
                     toolCalls = toolCalls,
                 ),
                 stopReason ?: if (toolCalls.isNotEmpty()) "tool_use" else null,
@@ -255,6 +263,16 @@ class AnthropicMessagesClient(
                 )
                 LlmRole.ASSISTANT -> {
                     val blocks = ArrayList<JsonObject>()
+                    // Thinking block must precede text and tool_use blocks. Include it when we have
+                    // the signature — Anthropic requires the exact signature from the original turn;
+                    // omitting the block (no signature stored) degrades silently rather than failing.
+                    if (msg.reasoning != null && msg.reasoningSignature != null) {
+                        blocks.add(buildJsonObject {
+                            put("type", "thinking")
+                            put("thinking", msg.reasoning)
+                            put("signature", msg.reasoningSignature)
+                        })
+                    }
                     msg.content?.takeIf { it.isNotBlank() }?.let { blocks.add(textBlock(it)) }
                     msg.toolCalls.forEach { tc ->
                         blocks.add(buildJsonObject {

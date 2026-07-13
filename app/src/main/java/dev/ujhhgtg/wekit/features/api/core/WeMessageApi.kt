@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.features.api.core
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.database.Cursor
+import com.tencent.mm.api.IEmojiInfo
 import com.tencent.mm.opensdk.modelmsg.WXFileObject
 import com.tencent.mm.opensdk.modelmsg.WXMediaMessage
 import com.tencent.mm.opensdk.modelmsg.WXMiniProgramObject
@@ -1714,7 +1715,7 @@ object WeMessageApi : ApiFeature(), IResolveDex {
                 .invokeStatic()!!
             var bytes = emojiFileEncryptMgr.reflekt()
                 .firstMethod {
-                    parameters("com.tencent.mm.api.IEmojiInfo")
+                    parameters(IEmojiInfo::class)
                     returnType = ByteArray::class
                 }
                 .invoke(emojiInfo) as ByteArray

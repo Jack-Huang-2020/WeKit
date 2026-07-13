@@ -55,6 +55,7 @@ class OpenAiChatCompletionsClient(
 
         val channel = resp.bodyAsChannel()
         while (true) {
+            @Suppress("DEPRECATION")
             val line = channel.readUTF8Line() ?: break
             val data = SseParser.dataOrNull(line) ?: continue
             if (data == "[DONE]") break

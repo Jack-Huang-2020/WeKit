@@ -70,7 +70,7 @@ class AgentSessionEngine(
      * kept as an interface so the engine has no direct DB dependency and stays testable.
      */
     interface HistorySink {
-        suspend fun onAssistantMessage(content: String?, reasoning: String?, toolCalls: List<LlmToolCall>)
+        suspend fun onAssistantMessage(content: String?, reasoning: String?, reasoningSignature: String?, toolCalls: List<LlmToolCall>)
         suspend fun onToolResult(callId: String, toolName: String, providerId: String, argumentsJson: String, resultText: String, status: ApprovalStatus)
         suspend fun onUserMessage(content: String)
     }
@@ -160,7 +160,7 @@ class AgentSessionEngine(
                     ?: LlmMessage(role = LlmRole.ASSISTANT, content = textBuf.toString().ifEmpty { null })
 
                 messages += assistant
-                historySink.onAssistantMessage(assistant.content, assistant.reasoning, assistant.toolCalls)
+                historySink.onAssistantMessage(assistant.content, assistant.reasoning, assistant.reasoningSignature, assistant.toolCalls)
 
                 // No tool calls -> round over, turn ends (§2.1).
                 if (assistant.toolCalls.isEmpty()) {

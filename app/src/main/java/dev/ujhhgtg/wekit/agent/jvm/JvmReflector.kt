@@ -1,3 +1,5 @@
+@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
+
 package dev.ujhhgtg.wekit.agent.jvm
 
 import dev.ujhhgtg.reflekt.utils.makeAccessible

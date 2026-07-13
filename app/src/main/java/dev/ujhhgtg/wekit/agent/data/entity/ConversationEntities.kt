@@ -56,6 +56,17 @@ data class MessageEntity(
     val createdAt: Instant,
     /** Assistant reasoning ("思考过程"), if the model produced any. Null for non-assistant rows. */
     val reasoning: String? = null,
+    /**
+     * Provider-specific signature that must be replayed on subsequent turns to keep the reasoning
+     * chain intact. Null for providers that don't use signatures or when reasoning was off.
+     *
+     * - **Anthropic**: the base64 `signature` field from the `signature_delta` SSE event — must be
+     *   sent back as a `{"type":"thinking","thinking":"...","signature":"..."}` content block.
+     * - **Gemini Interactions**: the `thought_signature` value from the thought step — must be
+     *   re-emitted as a `{"type":"thought","signature":"..."}` step before any `function_call` /
+     *   `model_output` steps that followed it.
+     */
+    val reasoningSignature: String? = null,
 )
 
 enum class ApprovalStatus { AUTO_ALLOWED, USER_APPROVED, USER_REJECTED, AI_APPROVED, AI_REJECTED }
@@ -74,6 +85,15 @@ data class ToolCallEntity(
     val approvalStatus: ApprovalStatus,
     val approvalReason: String?,
     val executedAt: Instant?,
+    /**
+     * Provider-specific opaque signature that must be replayed alongside this tool call on
+     * subsequent turns. Null for providers that don't use per-call signatures.
+     *
+     * - **Gemini generateContent**: the `thoughtSignature` field from the `functionCall` part of
+     *   the streaming response. Must be included on the **first** `functionCall` part in the model
+     *   Content when replaying the assistant turn; Gemini 3 returns HTTP 400 if it is omitted.
+     */
+    val providerSignature: String? = null,
 )
 
 // ---------------------------------------------------------------------------

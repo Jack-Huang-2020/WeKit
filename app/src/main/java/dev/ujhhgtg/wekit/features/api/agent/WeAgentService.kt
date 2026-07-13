@@ -894,8 +894,8 @@ object WeAgentService : dev.ujhhgtg.wekit.agent.trigger.TriggerManager.TriggerHo
         override suspend fun onUserMessage(content: String) {
             WeAgentRepository.appendUserMessage(sessionId, content)
         }
-        override suspend fun onAssistantMessage(content: String?, reasoning: String?, toolCalls: List<LlmToolCall>) {
-            WeAgentRepository.appendAssistantMessage(sessionId, content, reasoning, toolCalls)
+        override suspend fun onAssistantMessage(content: String?, reasoning: String?, reasoningSignature: String?, toolCalls: List<LlmToolCall>) {
+            WeAgentRepository.appendAssistantMessage(sessionId, content, reasoning, reasoningSignature, toolCalls)
         }
         override suspend fun onToolResult(callId: String, toolName: String, providerId: String, argumentsJson: String, resultText: String, status: ApprovalStatus) {
             WeAgentRepository.appendToolResult(sessionId, callId, toolName, providerId, argumentsJson, resultText, status)

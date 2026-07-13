@@ -27,7 +27,6 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
-import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -134,11 +133,9 @@ object AutoCacheFiles : ClickableFeature(),
         }
 
         scope.launch {
-            showToastSuspend("正在自动缓存文件...")
             val path = WeMessageApi.cacheFile(msgInfoInstance)
             if (path != null) {
                 WeLogger.i(TAG, "cached file to $path")
-                showToastSuspend("文件缓存成功")
             } else {
                 WeLogger.e(TAG, "failed to auto-cache file msgSvrId=$msgSvrId")
                 // 缓存失败, 允许后续事件重试

@@ -84,30 +84,30 @@ fun SkillsScreen(onBack: () -> Unit) {
         }
     }
 
-    if (showEditor) {
-        SkillEditorDialog(
-            existing = editing,
-            onDismiss = { showEditor = false },
-            onSave = { name, description, body ->
-                scope.launch {
-                    val ok = withContext(Dispatchers.IO) { SkillStore.save(name, description, body) }
-                    if (ok == null) showToast("技能名称无效")
-                    else {
-                        // Renaming isn't in-place: if the dir name changed, drop the old one.
-                        editing?.name?.takeIf { it != ok }?.let { old ->
-                            withContext(Dispatchers.IO) { SkillStore.delete(old) }
-                        }
-                        reloadTick++
-                        showEditor = false
+    SkillEditorDialog(
+        show = showEditor,
+        existing = editing,
+        onDismiss = { showEditor = false },
+        onSave = { name, description, body ->
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) { SkillStore.save(name, description, body) }
+                if (ok == null) showToast("技能名称无效")
+                else {
+                    // Renaming isn't in-place: if the dir name changed, drop the old one.
+                    editing?.name?.takeIf { it != ok }?.let { old ->
+                        withContext(Dispatchers.IO) { SkillStore.delete(old) }
                     }
+                    reloadTick++
+                    showEditor = false
                 }
-            },
-        )
-    }
+            }
+        },
+    )
 }
 
 @Composable
 private fun SkillEditorDialog(
+    show: Boolean,
     existing: SkillStore.Skill?,
     onDismiss: () -> Unit,
     onSave: (name: String, description: String, body: String) -> Unit,
@@ -116,7 +116,7 @@ private fun SkillEditorDialog(
     var description by remember(existing) { mutableStateOf(existing?.description.orEmpty()) }
     var body by remember(existing) { mutableStateOf(existing?.body.orEmpty()) }
 
-    WindowDialog(show = true, title = if (existing == null) "添加技能" else "编辑技能", onDismissRequest = onDismiss) {
+    WindowDialog(show = show, title = if (existing == null) "添加技能" else "编辑技能", onDismissRequest = onDismiss) {
         Column {
             TextField(value = name, onValueChange = { name = it }, label = "技能名称（同时作为目录名）", useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(8.dp))

@@ -92,7 +92,7 @@ fun WeAgentHomeScreen(onOpen: (AgentSettingsScreen) -> Unit) {
             Card(Modifier.padding(bottom = 6.dp)) {
                 ArrowPreference(
                     title = "模型提供方",
-                    summary = "配置 OpenAI Chat Completions / OpenAI Responses / Anthropic Messages 服务器、API Key、模型",
+                    summary = "配置 OpenAI / Anthropic / Gemini 服务器、API Key、模型",
                     onClick = { onOpen(AgentSettingsScreen.ModelProviders) },
                 )
                 if (loaded) {
@@ -119,7 +119,7 @@ fun WeAgentHomeScreen(onOpen: (AgentSettingsScreen) -> Unit) {
                     }
                     WindowDropdownPreference(
                         title = "运行中发送行为",
-                        items = listOf("队列（本轮对话结束后发送）", "引导（下次请求前插入）"),
+                        items = listOf("队列（本轮结束后发送）", "引导（下次请求前插入）"),
                         selectedIndex = if (sendWhileRunning == "QUEUE_AS_STEER") 1 else 0,
                         onSelectedIndexChange = {
                             val mode = if (it == 1) "QUEUE_AS_STEER" else "QUEUE_AFTER_TURN"

@@ -32,15 +32,11 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;$(grep '^ndk' ./gradle/li
 
 ### C. Windows
 
-没试过, 不提供支持, 自行解决, 解决不了的话去用 Linux 或者 WSL
+建议全文背诵 [停止用 Windows 工作!](https://zhuanlan.fxzhihu.com/p/2024527609388627701)
 
 ## 3. 构建
 
 构建期间会自动编译 Rust 原生库, 无须手动编译
-
-```bash
-chmod +x ./gradlew
-```
 
 ### 变体 (Flavor)
 
@@ -53,17 +49,16 @@ chmod +x ./gradlew
 
 ```bash
 # 单独构建某个变体
-./gradlew :app:assembleStandardRelease
-./gradlew :app:assembleLegacyRelease
+cargo xtask build --release --flavor standard
+cargo xtask build --release --flavor legacy
 
 # 一次性构建全部变体 (standard/legacy × debug/release)
-./gradlew :app:assembleRelease   # 所有 release 变体
-./gradlew :app:assemble          # 所有变体
+cargo xtask build --release
 ```
 
 产物按 `变体/构建类型` 分目录输出:
 
-```
+```none
 app/build/outputs/apk/standard/release/app-standard-arm64-v8a-release.apk
 app/build/outputs/apk/legacy/release/app-legacy-arm64-v8a-release.apk
 ```
@@ -72,13 +67,10 @@ app/build/outputs/apk/legacy/release/app-legacy-arm64-v8a-release.apk
 
 ```bash
 # standard 变体
-adb install ./app/build/outputs/apk/standard/release/app-standard-arm64-v8a-release.apk
-# legacy 变体
-adb install ./app/build/outputs/apk/legacy/release/app-legacy-arm64-v8a-release.apk
+cargo xtask run --release --flavor standard
 
-# --- 或 ---
-./gradlew :app:installStandardRelease
-./gradlew :app:installLegacyRelease
+# legacy 变体
+cargo xtask run --release --flavor legacy
 
 # 可选: 应用基准配置 (Baseline Profile)
 adb shell cmd package compile -m speed-profile dev.ujhhgtg.wekit

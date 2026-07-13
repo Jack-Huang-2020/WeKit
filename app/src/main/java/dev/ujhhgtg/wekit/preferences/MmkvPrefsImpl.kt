@@ -14,7 +14,7 @@ class MmkvPrefsImpl(name: String) : WePrefs() {
     private val mmkvInstance = MMKV.mmkvWithID(name, MMKV.MULTI_PROCESS_MODE)
 
     companion object {
-        const val TYPE_SUFFIX = "\$shadow\$type"
+        const val TYPE_SUFFIX = $$"$shadow$type"
         private const val TYPE_BOOL = 0x80 + 2
         private const val TYPE_INT = 0x80 + 4
         private const val TYPE_LONG = 0x80 + 6

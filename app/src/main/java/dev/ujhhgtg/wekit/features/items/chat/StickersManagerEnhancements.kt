@@ -17,6 +17,10 @@ import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.ui.utils.findViewWhich
 import dev.ujhhgtg.wekit.ui.utils.findViewsWhich
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.showToastSuspend
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.LinkedList
 
@@ -72,7 +76,7 @@ object StickersManagerEnhancements : SwitchFeature() {
         fun makeBtn(label: String): TextView = TextView(activity).apply {
             text = label
             @Suppress("DEPRECATION")
-            textSize = moveTv.textSize / activity.resources.displayMetrics.scaledDensity
+            textSize = (moveTv.textSize * 0.8 / activity.resources.displayMetrics.scaledDensity).toFloat()
             setTextColor(moveTv.currentTextColor)
             gravity = Gravity.CENTER_VERTICAL
             val hPad = moveTv.paddingStart
@@ -200,7 +204,7 @@ object StickersManagerEnhancements : SwitchFeature() {
             .firstField { type = LinkedList::class }.get()!! as LinkedList<Any>
         linkedList.clear()
         selection.forEach { emojiInfo ->
-            runCatching { (emojiInfo as IEmojiInfo).getMd5() }
+            runCatching { (emojiInfo as IEmojiInfo).md5 }
                 .getOrNull()
                 ?.let { linkedList.add(it) }
         }
@@ -281,12 +285,12 @@ object StickersManagerEnhancements : SwitchFeature() {
 
         // Build an O(1) lookup of currently-selected md5s.
         val selectedMd5s: Set<String> = selection.mapNotNull {
-            runCatching { (it as IEmojiInfo).getMd5() }.getOrNull()
+            runCatching { (it as IEmojiInfo).md5 }.getOrNull()
         }.toHashSet()
 
         selection.clear()
         allEmojis.forEach { info ->
-            val md5 = runCatching { (info as IEmojiInfo).getMd5() }.getOrNull()
+            val md5 = runCatching { (info as IEmojiInfo).md5 }.getOrNull()
             if (md5 != null && md5 !in selectedMd5s) selection.add(info)
         }
 
@@ -299,13 +303,17 @@ object StickersManagerEnhancements : SwitchFeature() {
 
         // Build an O(1) lookup of currently-selected md5s.
         val selectedMd5s: Set<String> = selection.mapNotNull {
-            runCatching { (it as IEmojiInfo).getMd5() }.getOrNull()
+            runCatching { (it as IEmojiInfo).md5 }.getOrNull()
         }.toHashSet()
 
         val baseName = System.currentTimeMillis().toString()
 
-        selectedMd5s.forEachIndexed { index, md5 ->
-            WeMessageApi.saveStickerByMd5(md5, "sticker_${baseName}_$index.gif")
+        CoroutineScope(Dispatchers.IO).launch {
+            showToastSuspend("正在导出...")
+            selectedMd5s.forEachIndexed { index, md5 ->
+                WeMessageApi.saveStickerByMd5(md5, "sticker_${baseName}_$index.gif")
+            }
+            showToastSuspend("已保存 ${selectedMd5s.size} 张贴纸到 /sdcard/Download/WeKit")
         }
     }
 }

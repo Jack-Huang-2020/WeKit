@@ -96,19 +96,18 @@ fun TriggersScreen(onBack: () -> Unit) {
         }
     }
 
-    if (showEditor) {
-        TriggerEditorDialog(
-            existing = editing,
-            sessions = sessions,
-            onDismiss = { showEditor = false },
-            onSave = { built ->
-                scope.launch {
-                    WeAgentRepository.upsertTrigger(built)
-                    showEditor = false
-                }
-            },
-        )
-    }
+    TriggerEditorDialog(
+        show = showEditor,
+        existing = editing,
+        sessions = sessions,
+        onDismiss = { showEditor = false },
+        onSave = { built ->
+            scope.launch {
+                WeAgentRepository.upsertTrigger(built)
+                showEditor = false
+            }
+        },
+    )
 }
 
 @Composable
@@ -171,6 +170,7 @@ private fun configSummary(t: TriggerEntity): String = when (t.type) {
  */
 @Composable
 private fun TriggerEditorDialog(
+    show: Boolean,
     existing: TriggerEntity?,
     sessions: Map<String, SessionEntity>,
     onDismiss: () -> Unit,
@@ -233,7 +233,7 @@ private fun TriggerEditorDialog(
     var cooldownSec by remember(existing) { mutableStateOf(((existing?.cooldownMillis ?: 0) / 1000).toString()) }
     var filterOwn by remember(existing) { mutableStateOf(existing?.filterOwnEvents ?: true) }
 
-    WindowDialog(show = true, title = if (creating) "添加触发器" else "编辑触发器", onDismissRequest = onDismiss) {
+    WindowDialog(show = show, title = if (creating) "添加触发器" else "编辑触发器", onDismissRequest = onDismiss) {
         Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
             TextField(value = name, onValueChange = { name = it }, label = "名称", useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(8.dp))

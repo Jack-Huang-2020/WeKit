@@ -15,6 +15,9 @@ import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.ui.utils.EditIcon
 import dev.ujhhgtg.wekit.utils.android.getSystemService
+import dev.ujhhgtg.wekit.utils.now
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 @Feature(name = "一键撤回并重新编辑", categories = ["聊天"], description = "向消息长按菜单添加菜单项, 可快捷撤回消息并将文本内容加入输入框")
 object QuickRevokeAndEdit : SwitchFeature(), WeChatMessageContextMenuApi.IMenuItemsProvider {
@@ -27,13 +30,15 @@ object QuickRevokeAndEdit : SwitchFeature(), WeChatMessageContextMenuApi.IMenuIt
         WeChatMessageContextMenuApi.removeProvider(this)
     }
 
+    fun isSupported(msgInfo: MessageInfo): Boolean {
+        return msgInfo.type?.isText == true && msgInfo.isSelfSender && now() - Instant.fromEpochMilliseconds(msgInfo.createTime) <= 2.minutes
+    }
+
     override fun getMenuItems(): List<WeChatMessageContextMenuApi.MenuItem> {
         return listOf(
             WeChatMessageContextMenuApi.MenuItem(
                 777016, "编辑", EditIcon, MaterialSymbols.Outlined.Edit,
-                isSupported = {
-                    it.type?.isText == true
-                },
+                isSupported = { isSupported(it) },
                 // revokes then loads one message's text into the input box; single-message only
                 multiSelect = WeChatMessageContextMenuApi.MultiSelectSupport.Unsupported
             ) { view, _, msgInfo ->

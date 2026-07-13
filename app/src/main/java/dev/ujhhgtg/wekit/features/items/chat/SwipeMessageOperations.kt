@@ -601,7 +601,7 @@ object SwipeMessageOperations : ClickableFeature(), IResolveDex,
 
     private fun onSwipeEdit(view: View, s: SwipeState) {
         val msgInfo = s.msgInfo ?: return
-        if (msgInfo.type?.isText != true) return
+        if (!QuickRevokeAndEdit.isSupported(msgInfo)) return
         QuickRevokeAndEdit.quickRevokeAndEdit(view.context, msgInfo)
     }
 

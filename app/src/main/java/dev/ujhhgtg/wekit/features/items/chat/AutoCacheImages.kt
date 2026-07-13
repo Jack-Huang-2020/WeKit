@@ -26,7 +26,6 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
-import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,11 +69,9 @@ object AutoCacheImages : ClickableFeature(), WeDatabaseListenerApi.IInsertListen
 
         WeLogger.i(TAG, "detected image message; msgSvrId=$msgSvrId, auto caching")
         CoroutineScope(Dispatchers.IO).launch {
-            showToastSuspend("正在自动缓存图片...")
             val path = WeMessageApi.cacheImage(msgSvrId)
             if (path != null) {
                 WeLogger.i(TAG, "cached image to $path")
-                showToastSuspend("图片缓存成功")
             } else {
                 WeLogger.e(TAG, "failed to auto-cache image msgSvrId=$msgSvrId")
             }

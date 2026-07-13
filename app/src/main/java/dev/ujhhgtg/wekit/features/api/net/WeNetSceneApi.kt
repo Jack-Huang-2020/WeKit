@@ -18,13 +18,13 @@ object WeNetSceneApi : ApiFeature(), IResolveDex {
         methodAddNetSceneToQueue.method.invoke(queue, netScene, 0)
     }
 
-    internal val classMmKernel by dexClass {
+    val classMmKernel by dexClass {
         matcher {
             usingEqStrings("MicroMsg.MMKernel", "Kernel not null, has initialized.")
         }
     }
 
-    internal val methodAddNetSceneToQueue by dexMethod {
+    val methodAddNetSceneToQueue by dexMethod {
         matcher {
             usingEqStrings("MicroMsg.NetSceneQueue", "forbid in waiting: type=", "forbid in running: type=")
         }

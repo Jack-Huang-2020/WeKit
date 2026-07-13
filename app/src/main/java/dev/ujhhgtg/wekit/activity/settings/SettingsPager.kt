@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,13 +38,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import coil3.compose.AsyncImage
 import com.composables.icons.materialsymbols.MaterialSymbols
+import com.composables.icons.materialsymbols.outlined.Account_circle
 import com.composables.icons.materialsymbols.outlined.Arrow_back
 import com.composables.icons.materialsymbols.outlined.Auto_delete
 import com.composables.icons.materialsymbols.outlined.Block
@@ -73,6 +81,12 @@ import dev.ujhhgtg.wekit.aboutlibraries.AboutLibrariesProvider
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
+import dev.ujhhgtg.wekit.features.api.core.WeApi
+import dev.ujhhgtg.wekit.features.api.net.WekitProAccount
+import dev.ujhhgtg.wekit.features.api.net.WekitProClient
+import dev.ujhhgtg.wekit.features.api.net.WekitProTier
+import dev.ujhhgtg.wekit.features.api.net.chipBackground
+import dev.ujhhgtg.wekit.features.api.net.chipText
 import dev.ujhhgtg.wekit.features.items.debug.ResetDexCache
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.MiuixSmallTitle
@@ -143,6 +157,12 @@ fun SettingsPager(onOpenLicense: () -> Unit) {
     UpdateErrorDialog(message = updateError, onDismiss = { updateError = null })
 
     MiuixListScaffold(title = "设置") {
+        // Account info card — shown at top of Settings tab.
+        item {
+            Spacer(Modifier.height(12.dp))
+            ProfileCard()
+        }
+
         // 界面
         item {
             MiuixSmallTitle(text = "界面", modifier = Modifier.padding(top = 12.dp))
@@ -289,9 +309,311 @@ fun SettingsPager(onOpenLicense: () -> Unit) {
         item { Spacer(Modifier.height(CONTENT_BOTTOM_INSET)) }
     }
 }
+
 // ---------------------------------------------------------------------------
-//  界面 (theme) settings — drives ThemeSettings, which re-themes the UI live
+//  Profile card — account info at the top of the Settings tab
 // ---------------------------------------------------------------------------
+
+/**
+ * Shows the current WeChat account's avatar, nickname, wxId, and WeKit Pro tier.
+ *
+ * WeChat identity (avatar, nickname, wxId) is loaded once from [dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi] / [WeApi].
+ * The tier chip reacts to [WekitProAccount.state] as a [kotlinx.coroutines.flow.StateFlow]: changes from startup refresh
+ * or activation propagate instantly without a recomposition trigger from the caller.
+ *
+ * Clicking the card opens:
+ *  - [ActivateDialog] when tier is [WekitProTier.NONE] (new user entering a code)
+ *  - [AccountInfoDialog] when already subscribed (shows expiry, option to enter renewal code)
+ */
+@Composable
+private fun ProfileCard() {
+    val wxId = remember { WeApi.selfWxId }
+
+    // WeKit Pro account state — reactive, sourced from the live StateFlow.
+    val proState by WekitProAccount.state.collectAsState()
+    val tier = proState.tier
+
+    // WeChat identity — loaded once from the local DB; doesn't change mid-session.
+    data class WechatIdentity(val nickname: String, val avatarUrl: String)
+    val identity by produceState(WechatIdentity("", "")) {
+        withContext(Dispatchers.IO) {
+            val db = dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
+            val nickname = if (db.isReady) {
+                db.getSelfProfileField(dev.ujhhgtg.wekit.features.api.core.models.SelfProfileField.NAME, "")
+                    ?.toString().orEmpty()
+            } else ""
+            val avatarUrl = if (db.isReady && wxId.isNotEmpty()) db.getAvatarUrl(wxId) else ""
+            value = WechatIdentity(nickname, avatarUrl)
+        }
+    }
+
+    var showActivate by remember { mutableStateOf(false) }
+    var showAccount by remember { mutableStateOf(false) }
+
+    ActivateDialog(show = showActivate, onDismiss = { showActivate = false })
+    AccountInfoDialog(show = showAccount, onDismiss = { showAccount = false })
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                if (tier == WekitProTier.NONE) showActivate = true
+                else showAccount = true
+            },
+        showIndication = true,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (identity.avatarUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = identity.avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                )
+            } else {
+                AvatarPlaceholder()
+            }
+
+            Spacer(Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = identity.nickname.ifEmpty { wxId.ifEmpty { "—" } },
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MiuixTheme.colorScheme.onSurface,
+                )
+                if (wxId.isNotEmpty()) {
+                    Text(
+                        text = wxId,
+                        fontSize = 13.sp,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.padding(top = 2.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            TierChip(tier = tier)
+        }
+    }
+}
+
+@Composable
+private fun AvatarPlaceholder() {
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(MiuixTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = MaterialSymbols.Outlined.Account_circle,
+            contentDescription = null,
+            modifier = Modifier.size(34.dp),
+            tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+    }
+}
+
+/** Tier chip — colors from [WekitProTier.chipBackground] / [WekitProTier.chipText]. */
+@Composable
+private fun TierChip(tier: WekitProTier) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(tier.chipBackground)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = tier.displayName,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = tier.chipText,
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Activation dialog — new user enters a code; existing user renews / upgrades
+// ---------------------------------------------------------------------------
+
+/**
+ * Dialog for entering a WeKit Pro activation code.
+ *
+ * - No `Authorization` header → server creates a new account.
+ * - Existing token present → server treats it as renewal / upgrade.
+ * The user never sees this distinction; the flow is identical from their side.
+ */
+@Composable
+private fun ActivateDialog(show: Boolean, onDismiss: () -> Unit) {
+    var code by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    WindowDialog(show = show, title = "激活 WeKit Pro", onDismissRequest = { if (!loading) onDismiss() }) {
+        Column {
+            Text(
+                text = "没有兑换码？在爱发电购买订阅后，系统将为您生成兑换码。",
+                fontSize = 13.sp,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+            TextButton(
+                text = "前往 ifdian.net/a/ujhhgtg 购买 →",
+                onClick = {
+                    "https://ifdian.net/a/ujhhgtg".toUri()
+                        .openInSystem(context, useCustomTabs = true)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+            )
+            TextField(
+                value = code,
+                onValueChange = { code = it; errorMsg = null },
+                label = "兑换码",
+                useLabelAsPlaceholder = true,
+                singleLine = true,
+                enabled = !loading,
+            )
+            errorMsg?.let { err ->
+                Text(
+                    text = err,
+                    fontSize = 12.sp,
+                    color = Color(0xFFCC3333),
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Row(Modifier.fillMaxWidth()) {
+                TextButton(
+                    text = "取消",
+                    onClick = { if (!loading) onDismiss() },
+                    modifier = Modifier.weight(1f),
+                    enabled = !loading,
+                )
+                Spacer(Modifier.width(12.dp))
+                TextButton(
+                    text = if (loading) "激活中…" else "激活",
+                    onClick = {
+                        loading = true
+                        scope.launch(Dispatchers.IO) {
+                            val trimmed = code.trim()
+                            val result = WekitProClient.redeem(
+                                code = trimmed,
+                                existingToken = WekitProAccount.userToken,
+                            )
+                            withContext(Dispatchers.Main) {
+                                when (result) {
+                                    is WekitProClient.RedeemResult.Success -> {
+                                        WekitProAccount.save(result.userToken, result.tier, result.periodEnd)
+                                        onDismiss()
+                                    }
+                                    is WekitProClient.RedeemResult.Error -> {
+                                        errorMsg = errorCodeToMessage(result.code, result.message)
+                                        loading = false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enabled = code.isNotBlank() && !loading,
+                    colors = ButtonDefaults.textButtonColorsPrimary(),
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Account info dialog — shown when already subscribed
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun AccountInfoDialog(show: Boolean, onDismiss: () -> Unit) {
+    val proState by WekitProAccount.state.collectAsState()
+    var showRenew by remember { mutableStateOf(false) }
+
+    ActivateDialog(show = showRenew, onDismiss = { showRenew = false; onDismiss() })
+    WindowDialog(show = show && !showRenew, title = "WeKit Pro 账户", onDismissRequest = onDismiss) {
+        Column {
+            AccountInfoRow("套餐", proState.tier.displayName)
+            AccountInfoRow(
+                "到期时间",
+                formatEpoch(proState.periodEnd),
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(Modifier.fillMaxWidth()) {
+                TextButton(
+                    text = "关闭",
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(12.dp))
+                TextButton(
+                    text = "续费 / 升级",
+                    onClick = { showRenew = true },
+                    colors = ButtonDefaults.textButtonColorsPrimary(),
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountInfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MiuixTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Error code → human-readable message
+// ---------------------------------------------------------------------------
+
+private fun errorCodeToMessage(code: String, serverMessage: String): String = when (code) {
+    "CODE_NOT_FOUND"       -> "兑换码不存在，请检查是否输入有误"
+    "CODE_ALREADY_REDEEMED"-> "此兑换码已被使用"
+    "CODE_EXPIRED"         -> "兑换码已过有效期（90 天）"
+    "CODE_REVOKED"         -> "此兑换码已被撤销"
+    "TIER_CONFLICT"        -> "此码档位低于当前订阅档位，不支持降级"
+    "INVALID_CODE_FORMAT"  -> "兑换码格式不正确，请重新输入"
+    "RATE_LIMITED"         -> "请求过于频繁，请稍后再试"
+    "NETWORK_ERROR"        -> "网络连接失败，请检查网络后重试"
+    else                   -> serverMessage.ifBlank { "激活失败（$code）" }
+}
+
 
 /** A miuix dropdown bound to an enum's entries. */
 @Composable

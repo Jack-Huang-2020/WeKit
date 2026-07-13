@@ -71,12 +71,13 @@ fun WorkspacesScreen(onBack: () -> Unit) {
         }
     }
 
-    editing?.let { w ->
-        EditWorkspaceDialog(
-            initialName = w.name,
-            onDismiss = { editing = null },
-            onDelete = { scope.launch { WeAgentRepository.deleteWorkspace(w.id) }; editing = null },
-            onRename = { newName ->
+    EditWorkspaceDialog(
+        show = editing != null,
+        initialName = editing?.name.orEmpty(),
+        onDismiss = { editing = null },
+        onDelete = { editing?.let { w -> scope.launch { WeAgentRepository.deleteWorkspace(w.id) } }; editing = null },
+        onRename = { newName ->
+            editing?.let { w ->
                 when (val v = WorkspaceStore.validateWorkspaceName(newName)) {
                     is WorkspaceStore.NameValidation.Invalid -> showToast(v.reason)
                     WorkspaceStore.NameValidation.Ok -> scope.launch {
@@ -87,20 +88,21 @@ fun WorkspacesScreen(onBack: () -> Unit) {
                         }
                     }.also { editing = null }
                 }
-            },
-        )
-    }
+            }
+        },
+    )
 }
 
 @Composable
 private fun EditWorkspaceDialog(
+    show: Boolean,
     initialName: String,
     onDismiss: () -> Unit,
     onDelete: () -> Unit,
     onRename: (String) -> Unit,
 ) {
     var name by remember { mutableStateOf(initialName) }
-    WindowDialog(show = true, title = "编辑工作区", onDismissRequest = onDismiss) {
+    WindowDialog(show = show, title = "编辑工作区", onDismissRequest = onDismiss) {
         Column {
             TextField(value = name, onValueChange = { name = it }, label = "工作区名称（会重命名真实文件夹）", useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(16.dp))

@@ -92,13 +92,18 @@ object WeDatabaseApi : ApiFeature(), IResolveDex {
             .invoke()!!
     }
 
-    fun getSelfProfileField(field: SelfProfileField, defValue: Any? = null) =
-        configStorage.reflekt()
-            .firstMethod {
-                parameters(Int::class, Any::class)
-                returnType = Any::class
-            }
-            .invoke(field.code, defValue)!!
+    fun getSelfProfileField(field: SelfProfileField, defValue: Any? = null): Any? =
+        runCatching {
+            configStorage.reflekt()
+                .firstMethod {
+                    parameters(Int::class, Any::class)
+                    returnType = Any::class
+                }
+                .invoke(field.code, defValue)
+        }.getOrElse {
+            WeLogger.w(TAG, "getSelfProfileField failed for ${field.name}", it)
+            defValue
+        }
 
     private object SqlStatements {
         // 基础字段 - 联系人查询常用字段

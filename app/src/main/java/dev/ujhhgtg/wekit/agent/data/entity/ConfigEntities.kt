@@ -7,7 +7,15 @@ import androidx.room.PrimaryKey
 // Model providers & models
 // ---------------------------------------------------------------------------
 
-enum class ModelProviderType { OPENAI_CHAT_COMPLETION, OPENAI_RESPONSES, ANTHROPIC_MESSAGES }
+enum class ModelProviderType {
+    OPENAI_CHAT_COMPLETION,
+    OPENAI_RESPONSES,
+    ANTHROPIC_MESSAGES,
+    GEMINI_GENERATE_CONTENT,
+    GEMINI_INTERACTIONS,
+    /** WeKit official router. Base URL is hardcoded; users only supply an API key. */
+    WEKIT_ROUTER,
+}
 
 @Entity(tableName = "model_providers")
 data class ModelProviderEntity(

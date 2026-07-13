@@ -92,8 +92,8 @@ object DisplayGroupMemberRoles : ClickableFeature(), IResolveDex,
             var af by remember { mutableStateOf(adminFg) }
             var mf by remember { mutableStateOf(memberFg) }
             var ot by remember { mutableStateOf(ownerText) }
-            var at by remember { mutableStateOf(memberText) }
-            var mt by remember { mutableStateOf(adminText) }
+            var at by remember { mutableStateOf(adminText) }
+            var mt by remember { mutableStateOf(memberText) }
             var showMem by remember { mutableStateOf(showMember) }
 
             AlertDialogContent(

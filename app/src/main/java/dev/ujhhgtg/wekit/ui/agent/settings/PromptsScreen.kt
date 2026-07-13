@@ -117,58 +117,62 @@ fun PromptsScreen(onBack: () -> Unit) {
     }
 
     // -------- Editors --------
-    editSystem?.let { entity ->
-        TwoFieldEditor(
-            title = if (entity.id.isEmpty()) "新增系统提示词" else "编辑系统提示词",
-            field1Label = "名称", field1 = entity.name,
-            field2Label = "系统提示词内容", field2 = entity.content, field2MaxLines = 12,
-            onDismiss = { editSystem = null },
-            onDelete = entity.id.takeIf { it.isNotEmpty() }?.let { { scope.launch { WeAgentRepository.deleteSystemPrompt(it) }; editSystem = null } },
-            onSave = { name, content ->
+    TwoFieldEditor(
+        show = editSystem != null,
+        title = if (editSystem?.id.isNullOrEmpty()) "新增系统提示词" else "编辑系统提示词",
+        field1Label = "名称", field1 = editSystem?.name.orEmpty(),
+        field2Label = "系统提示词内容", field2 = editSystem?.content.orEmpty(), field2MaxLines = 12,
+        onDismiss = { editSystem = null },
+        onDelete = editSystem?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deleteSystemPrompt(id) }; editSystem = null } },
+        onSave = { name, content ->
+            editSystem?.let { entity ->
                 scope.launch { WeAgentRepository.upsertSystemPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, name = name, content = content)) }
-                editSystem = null
-            },
-        )
-    }
-    editPerTurn?.let { entity ->
-        TwoFieldEditor(
-            title = if (entity.id.isEmpty()) "新增每轮提示词" else "编辑每轮提示词",
-            field1Label = "标题（可选）", field1 = entity.title,
-            field2Label = "每轮提示词内容", field2 = entity.content, field2MaxLines = 8,
-            onDismiss = { editPerTurn = null },
-            onDelete = entity.id.takeIf { it.isNotEmpty() }?.let { { scope.launch { WeAgentRepository.deletePerTurnPrompt(it) }; editPerTurn = null } },
-            onSave = { title, content ->
+            }
+            editSystem = null
+        },
+    )
+    TwoFieldEditor(
+        show = editPerTurn != null,
+        title = if (editPerTurn?.id.isNullOrEmpty()) "新增每轮提示词" else "编辑每轮提示词",
+        field1Label = "标题（可选）", field1 = editPerTurn?.title.orEmpty(),
+        field2Label = "每轮提示词内容", field2 = editPerTurn?.content.orEmpty(), field2MaxLines = 8,
+        onDismiss = { editPerTurn = null },
+        onDelete = editPerTurn?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deletePerTurnPrompt(id) }; editPerTurn = null } },
+        onSave = { title, content ->
+            editPerTurn?.let { entity ->
                 scope.launch { WeAgentRepository.upsertPerTurnPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, title = title, content = content)) }
-                editPerTurn = null
-            },
-        )
-    }
-    editConditional?.let { entity ->
-        TwoFieldEditor(
-            title = if (entity.id.isEmpty()) "新增条件提示词" else "编辑条件提示词",
-            field1Label = "触发正则", field1 = entity.regex,
-            field2Label = "注入内容", field2 = entity.content, field2MaxLines = 8,
-            onDismiss = { editConditional = null },
-            onDelete = entity.id.takeIf { it.isNotEmpty() }?.let { { scope.launch { WeAgentRepository.deleteConditionalPrompt(it) }; editConditional = null } },
-            onSave = { regex, content ->
+            }
+            editPerTurn = null
+        },
+    )
+    TwoFieldEditor(
+        show = editConditional != null,
+        title = if (editConditional?.id.isNullOrEmpty()) "新增条件提示词" else "编辑条件提示词",
+        field1Label = "触发正则", field1 = editConditional?.regex.orEmpty(),
+        field2Label = "注入内容", field2 = editConditional?.content.orEmpty(), field2MaxLines = 8,
+        onDismiss = { editConditional = null },
+        onDelete = editConditional?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deleteConditionalPrompt(id) }; editConditional = null } },
+        onSave = { regex, content ->
+            editConditional?.let { entity ->
                 scope.launch { WeAgentRepository.upsertConditionalPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, regex = regex, content = content)) }
-                editConditional = null
-            },
-        )
-    }
-    editPreset?.let { entity ->
-        TwoFieldEditor(
-            title = if (entity.id.isEmpty()) "新增预设提示词" else "编辑预设提示词",
-            field1Label = "标题", field1 = entity.title,
-            field2Label = "预设内容", field2 = entity.content, field2MaxLines = 8,
-            onDismiss = { editPreset = null },
-            onDelete = entity.id.takeIf { it.isNotEmpty() }?.let { { scope.launch { WeAgentRepository.deletePresetPrompt(it) }; editPreset = null } },
-            onSave = { title, content ->
+            }
+            editConditional = null
+        },
+    )
+    TwoFieldEditor(
+        show = editPreset != null,
+        title = if (editPreset?.id.isNullOrEmpty()) "新增预设提示词" else "编辑预设提示词",
+        field1Label = "标题", field1 = editPreset?.title.orEmpty(),
+        field2Label = "预设内容", field2 = editPreset?.content.orEmpty(), field2MaxLines = 8,
+        onDismiss = { editPreset = null },
+        onDelete = editPreset?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deletePresetPrompt(id) }; editPreset = null } },
+        onSave = { title, content ->
+            editPreset?.let { entity ->
                 scope.launch { WeAgentRepository.upsertPresetPrompt(entity.copy(id = entity.id.ifEmpty { UUID.randomUUID().toString() }, title = title, content = content)) }
-                editPreset = null
-            },
-        )
-    }
+            }
+            editPreset = null
+        },
+    )
 }
 
 @Composable
@@ -182,6 +186,7 @@ private fun AddRow(label: String, onClick: () -> Unit) {
  */
 @Composable
 private fun TwoFieldEditor(
+    show: Boolean,
     title: String,
     field1Label: String,
     field1: String,
@@ -194,7 +199,7 @@ private fun TwoFieldEditor(
 ) {
     var f1 by remember { mutableStateOf(field1) }
     var f2 by remember { mutableStateOf(field2) }
-    WindowDialog(show = true, title = title, onDismissRequest = onDismiss) {
+    WindowDialog(show = show, title = title, onDismissRequest = onDismiss) {
         Column {
             TextField(value = f1, onValueChange = { f1 = it }, label = field1Label, useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(8.dp))

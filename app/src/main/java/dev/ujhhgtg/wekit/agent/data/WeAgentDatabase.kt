@@ -57,10 +57,11 @@ import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
         TriggerEntity::class,
         ExternalServiceEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 9, to = 10), // adds external_services table
+        AutoMigration(from = 10, to = 11), // adds messages.reasoningSignature, tool_calls.providerSignature
     ],
 )
 @TypeConverters(WeAgentConverters::class)

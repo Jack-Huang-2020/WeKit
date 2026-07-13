@@ -200,9 +200,15 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
             val talker = msgInfo.talker
 
             if (packetUseWhitelist) {
-                if (talker !in packetWhitelist) return
+                if (talker !in packetWhitelist) {
+                    WeLogger.i(TAG, "skipping packet from $talker due to not in whitelist")
+                    return
+                }
             } else {
-                if (talker in packetBlacklist) return
+                if (talker in packetBlacklist) {
+                    WeLogger.i(TAG, "skipping packet from $talker due to in blacklist")
+                    return
+                }
             }
 
             val content = msgInfo.content

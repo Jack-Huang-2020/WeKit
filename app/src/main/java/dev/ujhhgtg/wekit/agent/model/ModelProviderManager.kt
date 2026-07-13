@@ -63,6 +63,18 @@ object ModelProviderManager {
 
         ModelProviderType.ANTHROPIC_MESSAGES ->
             AnthropicMessagesClient(httpClient, provider.baseUrl.trimEnd('/'), provider.apiKey)
+
+        ModelProviderType.GEMINI_GENERATE_CONTENT ->
+            GeminiGenerateContentClient(httpClient, provider.baseUrl.trimEnd('/'), provider.apiKey)
+
+        ModelProviderType.GEMINI_INTERACTIONS ->
+            GeminiInteractionsClient(httpClient, provider.baseUrl.trimEnd('/'), provider.apiKey)
+
+        // WeKit Router uses the OpenAI Chat Completions wire format. The base URL is always the
+        // hardcoded [WEKIT_ROUTER_BASE_URL] regardless of what is stored in the entity — this
+        // ensures the correct endpoint even if the stored value predates a URL change.
+        ModelProviderType.WEKIT_ROUTER ->
+            OpenAiChatCompletionsClient(httpClient, WEKIT_ROUTER_BASE_URL, provider.apiKey)
     }
 
     /**
@@ -98,29 +110,80 @@ object ModelProviderManager {
     }
 
     /**
-     * Fetches the provider's available model ids via the OpenAI-style `GET {baseUrl}/models`
-     * endpoint (`{ "data": [ { "id": "…" }, … ] }`), for the two OpenAI provider types. Only
-     * supported for OpenAI Chat Completions / Responses; Anthropic has no equivalent list endpoint,
-     * so it returns a failure. [provider] must carry a decrypted API key.
+     * Fetches the provider's available model ids. Three list-endpoint shapes are supported:
+     *  - **OpenAI / WeKit Router** (`OPENAI_CHAT_COMPLETION` / `OPENAI_RESPONSES` / `WEKIT_ROUTER`):
+     *    `GET {baseUrl}/models` → `{ "data": [ { "id": "…" }, … ] }`. Auth: `Authorization: Bearer`.
+     *  - **Gemini** (`GEMINI_GENERATE_CONTENT` / `GEMINI_INTERACTIONS`): `GET {baseUrl}/models` →
+     *    `{ "models": [ { "name": "models/gemini-…", … }, … ] }`. Auth: `x-goog-api-key`.
+     *    We strip the `"models/"` prefix so the stored id matches what goes in the URL / request.
+     *  - **Anthropic** (`ANTHROPIC_MESSAGES`): no public list endpoint; returns a failure.
+     *
+     * [provider] must carry a decrypted API key.
      */
     suspend fun listRemoteModels(provider: ModelProviderEntity): Result<List<String>> {
         if (provider.type == ModelProviderType.ANTHROPIC_MESSAGES) {
             return Result.failure(LlmException("Anthropic 不支持自动获取模型列表，请手动添加。"))
         }
-        val endpoint = "${provider.baseUrl.trimEnd('/')}/models"
+        val isGemini = provider.type == ModelProviderType.GEMINI_GENERATE_CONTENT
+            || provider.type == ModelProviderType.GEMINI_INTERACTIONS
+        // WeKit Router always uses its hardcoded base URL.
+        val resolvedBase = if (provider.type == ModelProviderType.WEKIT_ROUTER) WEKIT_ROUTER_BASE_URL
+                           else provider.baseUrl.trimEnd('/')
+        val endpoint = "$resolvedBase/models"
         return runCatching {
             val resp = httpClient.get(endpoint) {
-                if (provider.apiKey.isNotBlank()) header(HttpHeaders.Authorization, "Bearer ${provider.apiKey}")
+                if (provider.apiKey.isNotBlank()) {
+                    if (isGemini) {
+                        header(GeminiCommon.API_KEY_HEADER, provider.apiKey)
+                    } else {
+                        header(HttpHeaders.Authorization, "Bearer ${provider.apiKey}")
+                    }
+                }
             }
             if (!resp.status.isSuccess()) {
                 throw LlmException("HTTP ${resp.status.value}: ${resp.bodyAsText().take(300)}")
             }
             val root = Json.parseToJsonElement(resp.bodyAsText()).jsonObject
-            root["data"]?.jsonArray
-                ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.content?.takeIf(String::isNotBlank) }
-                ?.distinct()
-                ?.sorted()
-                ?: emptyList()
+            if (isGemini) {
+                // Gemini: { "models": [ { "name": "models/gemini-…" }, … ] }
+                root["models"]?.jsonArray
+                    ?.mapNotNull {
+                        it.jsonObject["name"]?.jsonPrimitive?.content
+                            ?.removePrefix("models/")
+                            ?.takeIf(String::isNotBlank)
+                    }
+                    ?.distinct()
+                    ?.sorted()
+                    ?: emptyList()
+            } else {
+                // OpenAI: { "data": [ { "id": "…" }, … ] }
+                root["data"]?.jsonArray
+                    ?.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.content?.takeIf(String::isNotBlank) }
+                    ?.distinct()
+                    ?.sorted()
+                    ?: emptyList()
+            }
         }
     }
+
+    /**
+     * Fixed id for the built-in WeKit Router provider row in the Room database.
+     * This id is intercepted by [dev.ujhhgtg.wekit.agent.data.WeAgentRepository.getDecryptedModelProvider]
+     * to inject the live [dev.ujhhgtg.wekit.features.api.net.WekitProAccount.userToken] as the
+     * API key at call-time rather than reading the (intentionally blank) DB column.
+     */
+    const val WEKIT_ROUTER_BUILTIN_ID = "wekit_router_builtin"
+
+    /**
+     * OpenAI-compatible base URL for the WeKit Router LLM endpoint.
+     * [OpenAiChatCompletionsClient] appends `/chat/completions` to this, resulting in
+     * `https://api.wekit.pro/v1/chat/completions`.
+     */
+    const val WEKIT_ROUTER_BASE_URL = "https://api.wekit.pro/v1"
+
+    /**
+     * Root URL for the WeKit Pro management API (no trailing `/v1`).
+     * [dev.ujhhgtg.wekit.features.api.net.WekitProClient] appends `/v1/admin/...` to this.
+     */
+    const val WEKIT_PRO_MGMT_ROOT = "https://api.wekit.pro"
 }

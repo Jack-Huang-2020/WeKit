@@ -23,12 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.ujhhgtg.wekit.agent.data.WeAgentRepository
 import dev.ujhhgtg.wekit.agent.data.entity.ModelEntity
 import dev.ujhhgtg.wekit.agent.data.entity.ModelProviderEntity
 import dev.ujhhgtg.wekit.agent.data.entity.ModelProviderType
 import dev.ujhhgtg.wekit.agent.model.ModelProviderManager
 import dev.ujhhgtg.wekit.utils.android.showToast
+import dev.ujhhgtg.wekit.utils.openInSystem
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -40,6 +42,7 @@ import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 import java.util.UUID
 
@@ -68,6 +71,7 @@ fun ModelProviderDetailScreen(providerId: String, onBack: () -> Unit) {
     var importing by remember { mutableStateOf(false) }
 
     val p = provider
+    val isBuiltin = p?.id == dev.ujhhgtg.wekit.agent.model.ModelProviderManager.WEKIT_ROUTER_BUILTIN_ID
 
     AgentSettingsScaffold(title = p?.name ?: "提供方", onBack = onBack) {
         if (p == null) {
@@ -77,32 +81,66 @@ fun ModelProviderDetailScreen(providerId: String, onBack: () -> Unit) {
 
         item { SmallTitle("连接") }
         item {
+            val isBuiltin = p.id == dev.ujhhgtg.wekit.agent.model.ModelProviderManager.WEKIT_ROUTER_BUILTIN_ID
+            val isWekitRouter = p.type == ModelProviderType.WEKIT_ROUTER
+            val context = androidx.compose.ui.platform.LocalContext.current
             Card(Modifier.padding(bottom = 6.dp)) {
                 Column(Modifier.padding(12.dp)) {
-                    TextField(value = name, onValueChange = { name = it }, label = "名称", useLabelAsPlaceholder = true, singleLine = true)
-                    Spacer(Modifier.height(8.dp))
-                    TextField(value = baseUrl, onValueChange = { baseUrl = it }, label = "Base URL", useLabelAsPlaceholder = true, singleLine = true)
-                    Spacer(Modifier.height(8.dp))
-                    TextField(value = apiKey, onValueChange = { apiKey = it }, label = "API Key", useLabelAsPlaceholder = true, singleLine = true)
-                    Spacer(Modifier.height(12.dp))
-                    Row(Modifier.fillMaxWidth()) {
-                        TextButton(
-                            text = "删除提供方",
-                            onClick = { scope.launch { WeAgentRepository.deleteModelProvider(p.id); onBack() } },
-                            modifier = Modifier.weight(1f),
+                    if (isBuiltin) {
+                        // Built-in WeKit Router — read-only, cannot be deleted or modified.
+                        Text(
+                            text = "这是内置的 WeKit Router 服务，无法删除或修改。\n在设置页点击账户卡片激活或续费 Pro 订阅。",
+                            fontSize = 13.sp,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )
-                        Spacer(Modifier.width(12.dp))
+                        Spacer(Modifier.height(8.dp))
                         TextButton(
-                            text = "保存",
+                            text = "访问 wekit.pro 了解更多",
                             onClick = {
-                                scope.launch {
-                                    WeAgentRepository.upsertModelProvider(p.copy(name = name, baseUrl = baseUrl, apiKey = apiKey))
-                                    dev.ujhhgtg.wekit.agent.model.ModelProviderManager.invalidate(p.id)
-                                }
+                                android.net.Uri.parse("https://wekit.pro")
+                                    .openInSystem(context, useCustomTabs = true)
                             },
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                         )
+                    } else {
+                        TextField(value = name, onValueChange = { name = it }, label = "名称", useLabelAsPlaceholder = true, singleLine = true)
+                        Spacer(Modifier.height(8.dp))
+                        if (!isWekitRouter) {
+                            TextField(value = baseUrl, onValueChange = { baseUrl = it }, label = "Base URL", useLabelAsPlaceholder = true, singleLine = true)
+                            Spacer(Modifier.height(8.dp))
+                        }
+                        TextField(value = apiKey, onValueChange = { apiKey = it }, label = "API Key", useLabelAsPlaceholder = true, singleLine = true)
+                        if (isWekitRouter) {
+                            Spacer(Modifier.height(4.dp))
+                            TextButton(
+                                text = "访问 wekit.pro 了解更多",
+                                onClick = {
+                                    android.net.Uri.parse("https://wekit.pro")
+                                        .openInSystem(context, useCustomTabs = true)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Row(Modifier.fillMaxWidth()) {
+                            TextButton(
+                                text = "删除提供方",
+                                onClick = { scope.launch { WeAgentRepository.deleteModelProvider(p.id); onBack() } },
+                                modifier = Modifier.weight(1f),
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            TextButton(
+                                text = "保存",
+                                onClick = {
+                                    scope.launch {
+                                        WeAgentRepository.upsertModelProvider(p.copy(name = name, baseUrl = baseUrl, apiKey = apiKey))
+                                        dev.ujhhgtg.wekit.agent.model.ModelProviderManager.invalidate(p.id)
+                                    }
+                                },
+                                colors = ButtonDefaults.textButtonColorsPrimary(),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
@@ -120,63 +158,68 @@ fun ModelProviderDetailScreen(providerId: String, onBack: () -> Unit) {
                         (m.contextWindow?.let { " · ctx=$it" } ?: "") +
                         (m.maxTokens?.let { " · max=$it" } ?: "") +
                             if (m.supportsVision) " · 视觉" else "",
-                    onClick = { editingModel = m },
+                    // Builtin WeKit Router models are read-only — no editing or deletion.
+                    onClick = if (isBuiltin) null else ({ editingModel = m }),
                 )
             }
         }
-        item {
-            Button(
-                onClick = { editingModel = ModelEntity("", providerId, "", null, null, "", null) },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            ) { Text("添加模型") }
-        }
-        // Auto-import is only meaningful for the OpenAI-style /models endpoint.
-        if (p.type != ModelProviderType.ANTHROPIC_MESSAGES) {
+        if (!isBuiltin) {
             item {
-                TextButton(
-                    text = if (importing) "获取模型列表中…" else "自动导入模型",
-                    enabled = !importing,
-                    onClick = {
-                        importing = true
-                        scope.launch {
-                            // Use the live (possibly unsaved) connection fields, per project decision.
-                            val result = ModelProviderManager.listRemoteModels(
-                                p.copy(name = name, baseUrl = baseUrl, apiKey = apiKey)
-                            )
-                            importing = false
-                            result.fold(
-                                onSuccess = { importCandidates = it },
-                                onFailure = { showToast("获取失败：${it.message}") },
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = AGENT_CONTENT_BOTTOM_INSET),
-                )
+                Button(
+                    onClick = { editingModel = ModelEntity("", providerId, "", null, null, "", null) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) { Text("添加模型") }
             }
+            // Auto-import is only meaningful for the OpenAI-style /models endpoint.
+            if (p.type != ModelProviderType.ANTHROPIC_MESSAGES) {
+                item {
+                    TextButton(
+                        text = if (importing) "获取模型列表中…" else "自动导入模型",
+                        enabled = !importing,
+                        onClick = {
+                            importing = true
+                            scope.launch {
+                                // Use the live (possibly unsaved) connection fields, per project decision.
+                                val result = ModelProviderManager.listRemoteModels(
+                                    p.copy(name = name, baseUrl = baseUrl, apiKey = apiKey)
+                                )
+                                importing = false
+                                result.fold(
+                                    onSuccess = { importCandidates = it },
+                                    onFailure = { showToast("获取失败：${it.message}") },
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = AGENT_CONTENT_BOTTOM_INSET),
+                    )
+                }
+            }
+        } else {
+            item { Spacer(Modifier.height(AGENT_CONTENT_BOTTOM_INSET)) }
         }
     }
 
-    importCandidates?.let { candidates ->
-        ImportModelsDialog(
-            candidates = candidates,
-            existingRemoteIds = models.map { it.modelIdRemote }.toSet(),
-            onDismiss = { importCandidates = null },
-            onImport = { picked ->
-                scope.launch {
-                    val added = WeAgentRepository.importModels(providerId, picked)
-                    showToast("已导入 $added 个模型")
-                }
-                importCandidates = null
-            },
-        )
-    }
+    ImportModelsDialog(
+        show = importCandidates != null,
+        candidates = importCandidates.orEmpty(),
+        existingRemoteIds = models.map { it.modelIdRemote }.toSet(),
+        onDismiss = { importCandidates = null },
+        onImport = { picked ->
+            scope.launch {
+                val added = WeAgentRepository.importModels(providerId, picked)
+                showToast("已导入 $added 个模型")
+            }
+            importCandidates = null
+        },
+    )
 
-    editingModel?.let { m ->
-        ModelDialog(
-            existing = m,
-            onDismiss = { editingModel = null },
-            onDelete = m.id.takeIf { it.isNotEmpty() }?.let { { scope.launch { WeAgentRepository.deleteModel(it) }; editingModel = null } },
-            onSave = { remoteId, display, effort, customJson, contextWindow, maxTokens, supportsVision ->
+    ModelDialog(
+        show = editingModel != null,
+        existing = editingModel ?: ModelEntity("", providerId, "", null, null, "", null),
+        onDismiss = { editingModel = null },
+        onDelete = editingModel?.id?.takeIf { it.isNotEmpty() }?.let { id -> { scope.launch { WeAgentRepository.deleteModel(id) }; editingModel = null } },
+        onSave = { remoteId, display, effort, customJson, contextWindow, maxTokens, supportsVision ->
+            editingModel?.let { m ->
                 scope.launch {
                     WeAgentRepository.upsertModel(
                         m.copy(
@@ -192,10 +235,10 @@ fun ModelProviderDetailScreen(providerId: String, onBack: () -> Unit) {
                         )
                     )
                 }
-                editingModel = null
-            },
-        )
-    }
+            }
+            editingModel = null
+        },
+    )
 }
 
 /** Reasoning-effort gears. "off" means omit the field entirely. */
@@ -207,6 +250,7 @@ private val EFFORT_GEARS = listOf("off", "minimal", "low", "medium", "high", "xh
  */
 @Composable
 private fun ImportModelsDialog(
+    show: Boolean,
     candidates: List<String>,
     existingRemoteIds: Set<String>,
     onDismiss: () -> Unit,
@@ -215,7 +259,7 @@ private fun ImportModelsDialog(
     // Pre-select every not-yet-added id.
     val selected = remember { mutableStateListOf<String>().apply { addAll(candidates.filter { it !in existingRemoteIds }) } }
 
-    WindowDialog(show = true, title = "导入模型（${candidates.size}）", onDismissRequest = onDismiss) {
+    WindowDialog(show = show, title = "导入模型（${candidates.size}）", onDismissRequest = onDismiss) {
         Column {
             if (candidates.isEmpty()) {
                 Text("该提供方未返回任何模型。")
@@ -260,6 +304,7 @@ private fun ImportModelsDialog(
 
 @Composable
 private fun ModelDialog(
+    show: Boolean,
     existing: ModelEntity,
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)?,
@@ -273,7 +318,7 @@ private fun ModelDialog(
     var supportsVision by remember { mutableStateOf(existing.supportsVision) }
     var effortIndex by remember { mutableIntStateOf(EFFORT_GEARS.indexOf(existing.reasoningEffort ?: "off").coerceAtLeast(0)) }
 
-    WindowDialog(show = true, title = if (existing.id.isEmpty()) "添加模型" else "编辑模型", onDismissRequest = onDismiss) {
+    WindowDialog(show = show, title = if (existing.id.isEmpty()) "添加模型" else "编辑模型", onDismissRequest = onDismiss) {
         Column {
             TextField(value = remoteId, onValueChange = { remoteId = it }, label = "模型 ID（传给 API）", useLabelAsPlaceholder = true, singleLine = true)
             Spacer(Modifier.height(8.dp))

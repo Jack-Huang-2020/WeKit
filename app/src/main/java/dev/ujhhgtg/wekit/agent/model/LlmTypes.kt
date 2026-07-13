@@ -14,11 +14,19 @@ enum class LlmRole { SYSTEM, USER, ASSISTANT, TOOL }
  * A single tool invocation requested by the model. [id] correlates the later [LlmMessage] with
  * role [LlmRole.TOOL] carrying the result. [argumentsJson] is the raw JSON object string the model
  * produced (may need re-parsing/validation before use).
+ *
+ * [providerSignature] is opaque provider-specific metadata that must be replayed verbatim on the
+ * next turn. Gemini 3 uses it for the `thoughtSignature` that guards `functionCall` parts: omitting
+ * it on a replayed tool-call turn fails with HTTP 400. It is carried in-memory only within a single
+ * [dev.ujhhgtg.wekit.agent.engine.AgentSessionEngine.runTurn] tool loop and is **not** persisted —
+ * so across a session reload it is lost, exactly like Anthropic's thinking blocks (see
+ * [AnthropicMessagesClient]). This is fine for the normal case where a turn ends on plain text.
  */
 data class LlmToolCall(
     val id: String,
     val name: String,
     val argumentsJson: String,
+    val providerSignature: String? = null,
 )
 
 /**
@@ -38,7 +46,8 @@ data class LlmImage(
  * One message in the conversation sent to / received from the model.
  * - user/system: [content] holds text; [images] optionally carries inline images (vision models).
  * - assistant: [content] optional text plus zero or more [toolCalls]; [reasoning] holds any
- *   thinking text the model emitted.
+ *   thinking text the model emitted; [reasoningSignature] is the provider signature that must be
+ *   replayed on subsequent turns (see [LlmToolCall.providerSignature] for per-call signatures).
  * - tool: [content] holds the tool result, [toolCallId] correlates it with the request.
  */
 data class LlmMessage(
@@ -48,6 +57,18 @@ data class LlmMessage(
     val toolCallId: String? = null,
     val reasoning: String? = null,
     val images: List<LlmImage> = emptyList(),
+    /**
+     * Provider-specific opaque signature attached to the reasoning / thinking block of this
+     * assistant message. Must be echoed back verbatim on subsequent turns:
+     *
+     * - **Anthropic**: base64 signature from the `signature_delta` SSE event; required in the
+     *   `{"type":"thinking","thinking":"…","signature":"…"}` content block.
+     * - **Gemini Interactions**: `thought_signature` from the thought step; required when
+     *   re-emitting the `thought` step that preceded any function calls or the final model output.
+     *
+     * Null when reasoning was off, the provider doesn't use signatures, or the data predates v11.
+     */
+    val reasoningSignature: String? = null,
 )
 
 /** A tool advertised to the model, in provider-neutral form. */
